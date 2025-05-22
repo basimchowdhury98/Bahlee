@@ -23,6 +23,7 @@ export const Todo = ({ title, completed, completedBy, onComplete, onPress }: Tod
       <TouchableOpacity 
         style={[styles.checkbox, completed && styles.checked]} 
         onPress={onComplete}
+        testID="todo-checkbox"
       />
     </TouchableOpacity>
   );

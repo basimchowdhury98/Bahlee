@@ -45,7 +45,10 @@ export const HomeScreen = () => {
         )}
         contentContainerStyle={styles.list}
       />
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity 
+        style={styles.addButton}
+        testID="add-todo-button"
+      >
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
     </View>
