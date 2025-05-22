@@ -1,32 +1,49 @@
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { HomeScreen } from '../HomeScreen';
+import { todosService } from '../../services/todos';
+
+// Mock the todos service
+jest.mock('../../services/todos', () => ({
+  todosService: {
+    fetchTodos: jest.fn().mockResolvedValue([
+      { id: '1', title: 'Feed cat', completed: false },
+      { id: '2', title: 'Take out trash', completed: true, completedBy: 'Partner' },
+    ]),
+    updateTodo: jest.fn().mockResolvedValue(undefined),
+  },
+}));
 
 describe('HomeScreen', () => {
-  it('displays todos and allows completing them', () => {
-    render(<HomeScreen />);
-    
-    // Check if initial todos are rendered
-    const feedCat = screen.getByText('Feed cat');
-    const takeOutTrash = screen.getByText('Take out trash');
-    
-    expect(feedCat).toBeTruthy();
-    expect(takeOutTrash).toBeTruthy();
-    
-    // Find the completion checkbox for the first todo
-    const checkbox = screen.getAllByTestId('todo-checkbox')[0];
-    
-    // Complete the todo
-    fireEvent.press(checkbox);
-    
-    // Verify the todo was marked as completed
-    expect(screen.getByText('Done by Me')).toBeTruthy();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('shows floating action button for adding new todos', () => {
+  it('displays todos and allows completing them', async () => {
     render(<HomeScreen />);
-    
-    // Check if add button is present
+    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
+    const feedCat = screen.getByText('Feed cat');
+    const takeOutTrash = screen.getByText('Take out trash');
+    const checkbox = screen.getAllByTestId('todo-checkbox')[0];
+
+    fireEvent.press(checkbox);
+
+    expect(feedCat).toBeTruthy();
+    expect(takeOutTrash).toBeTruthy();
+    expect(todosService.updateTodo).toHaveBeenCalledWith('1', {
+      completed: true,
+      completedBy: 'Me'
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Done by Me')).toBeTruthy();
+    });
+  });
+
+  it('shows floating action button for adding new todos', async () => {
+    render(<HomeScreen />);
+    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
+
     const addButton = screen.getByTestId('add-todo-button');
+
     expect(addButton).toBeTruthy();
   });
 }); 
