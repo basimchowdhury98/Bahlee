@@ -24,15 +24,16 @@ jest.mock('../../services/todos', () => ({
 }));
 
 describe('HomeScreen', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
-  });
 
+    render(<HomeScreen />);
+    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
+  });
 
   it('shows nothing when there are no todos', async () => {
     // Override mock for this test
     (todosService.fetchTodos as jest.Mock).mockResolvedValueOnce([]);
-    
     render(<HomeScreen />);
     await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
 
@@ -40,9 +41,6 @@ describe('HomeScreen', () => {
   });
 
   it('displays todos in order', async () => {
-    render(<HomeScreen />);
-    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-
     const todoItems = screen.getAllByTestId('todo-item');
     const feedCat = todoItems[0];
     const runRoomba = todoItems[1];
@@ -58,30 +56,17 @@ describe('HomeScreen', () => {
   });
 
   it('shows floating action button for adding new todos', async () => {
-    render(<HomeScreen />);
-    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-
     const addButton = screen.getByTestId('add-todo-button');
 
     expect(addButton).toBeTruthy();
   });
 
   it('allows todos to be added', async () => {
-    render(<HomeScreen />);
-    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-
     const addButton = screen.getByTestId('add-todo-button');
     fireEvent.press(addButton);
     const todoNameInput = screen.getByTestId('todo-name-input');
     fireEvent.changeText(todoNameInput, 'Take out dishes from dishwasher');
-    const timeInput = screen.getByTestId('todo-scheduled-time-input');
-    const selectedDate = new Date();
-    selectedDate.setHours(14); // 2 PM
-    selectedDate.setMinutes(0);
-    fireEvent(timeInput, 'onChange', {
-      nativeEvent: { timestamp: selectedDate.getTime() },
-      type: 'set',
-    }, selectedDate);
+    await setTodoScheduledTimeToHour(14);
     const confirmButton = screen.getByTestId('confirm-button');
     fireEvent.press(confirmButton);
 
@@ -94,9 +79,6 @@ describe('HomeScreen', () => {
   });
 
   it('allows todos to be deleted', async () => {
-    render(<HomeScreen />);
-    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-
     const deleteButton = screen.getAllByTestId('delete-todo-button')[0];
     fireEvent.press(deleteButton);
 
@@ -106,9 +88,6 @@ describe('HomeScreen', () => {
   })
   
   it('allows todos to be completed', async () => {
-    render(<HomeScreen />);
-    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-
     const feedCatCheckbox = screen.getAllByTestId('todo-checkbox')[0];
     fireEvent.press(feedCatCheckbox);
 
@@ -119,3 +98,14 @@ describe('HomeScreen', () => {
     expect(feedCat).toHaveTextContent('Done by me', { exact: false });
   })
 }); 
+
+const setTodoScheduledTimeToHour = async (hour: number) => {
+  const timeInput = screen.getByTestId('todo-scheduled-time-input');
+  const selectedDate = new Date();
+  selectedDate.setHours(hour);
+  selectedDate.setMinutes(0);
+  fireEvent(timeInput, 'onChange', {
+    nativeEvent: { timestamp: selectedDate.getTime() },
+    type: 'set',
+  }, selectedDate);
+}
