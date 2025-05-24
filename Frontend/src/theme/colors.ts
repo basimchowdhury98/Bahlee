@@ -1,20 +1,20 @@
 export const colors = {
   background: {
-    primary: '#000000',
-    secondary: '#1C1C1E',
-    card: '#2C2C2E',
+    primary: '#1A1118',  // Very dark pink-tinted black
+    secondary: '#261A23', // Dark pink-purple
+    card: '#382A34',     // Medium dark pink-purple
   },
   text: {
     primary: '#FFFFFF',
-    secondary: '#8E8E93',
-    accent: '#0A84FF',
+    secondary: '#E0B3D3', // Light pink
+    accent: '#FF69B4',    // Hot pink
   },
   action: {
     primary: '#FFFFFF',
-    secondary: '#2C2C2E',
+    secondary: '#382A34',
   },
   status: {
-    success: '#32D74B',
-    error: '#FF453A',
+    success: '#FF9ECD',   // Soft pink
+    error: '#FF1493',     // Deep pink
   }
 }; 
