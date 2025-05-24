@@ -19,5 +19,15 @@ export const todosService = {
   updateTodo: async (id: string, updates: Partial<TodoItem>): Promise<void> => {
     // This will eventually be replaced with Firebase
     return Promise.resolve();
+  },
+
+  addTodo: async (title: string, scheduledTime: number): Promise<TodoItem> => {
+    // This will eventually be replaced with Firebase
+    return Promise.resolve({
+      id: Math.random().toString(36).substr(2, 9),
+      title,
+      completed: false,
+      scheduledTime,
+    });
   }
 }; 

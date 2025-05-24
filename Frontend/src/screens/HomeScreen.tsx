@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Todo } from '../components/Todo';
+import { AddTodoForm } from '../components/AddTodoForm';
 import { TodoItem, todosService } from '../services/todos';
 
 export const HomeScreen = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
   useEffect(() => {
     const loadTodos = async () => {
@@ -46,6 +48,24 @@ export const HomeScreen = () => {
     console.log('Todo pressed:', id);
   };
 
+  const handleAddTodo = async (title: string, timeString: string) => {
+    try {
+      // Convert time string (e.g. "2:00 PM") to seconds since midnight
+      const [time, period] = timeString.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      let totalHours = hours;
+      if (period === 'PM' && hours !== 12) totalHours += 12;
+      if (period === 'AM' && hours === 12) totalHours = 0;
+      const scheduledTime = totalHours * 3600 + minutes * 60;
+
+      const newTodo = await todosService.addTodo(title, scheduledTime);
+      setTodos([...todos, newTodo].sort((a, b) => a.scheduledTime - b.scheduledTime));
+      setIsAddModalVisible(false);
+    } catch (err) {
+      setError('Failed to add todo');
+    }
+  };
+
   if (isLoading) {
     return <View style={styles.container}><Text>Loading...</Text></View>;
   }
@@ -74,9 +94,15 @@ export const HomeScreen = () => {
       <TouchableOpacity 
         style={styles.addButton}
         testID="add-todo-button"
+        onPress={() => setIsAddModalVisible(true)}
       >
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
+      <AddTodoForm
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
+        onSubmit={handleAddTodo}
+      />
     </View>
   );
 };
