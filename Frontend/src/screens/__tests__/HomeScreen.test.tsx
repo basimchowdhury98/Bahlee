@@ -54,6 +54,7 @@ describe('HomeScreen', () => {
     expect(runRoomba).toHaveTextContent('Run roomba', { exact: false });
     expect(takeOutTrash).toBeTruthy();
     expect(takeOutTrash).toHaveTextContent('Take out trash', { exact: false });
+    expect(takeOutTrash).toHaveTextContent('Done by Partner', { exact: false });
   });
 
   it('shows floating action button for adding new todos', async () => {
@@ -102,7 +103,12 @@ describe('HomeScreen', () => {
     await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
 
     const feedCatCheckbox = screen.getAllByTestId('todo-checkbox')[0];
-
     fireEvent.press(feedCatCheckbox);
+
+    await waitFor(() => expect(todosService.updateTodo).toHaveBeenCalled());
+    const todoItems = screen.getAllByTestId('todo-item');
+    const feedCat = todoItems[0];
+    expect(feedCat).toHaveTextContent('Feed cat', { exact: false });
+    expect(feedCat).toHaveTextContent('Done by me', { exact: false });
   })
 }); 
