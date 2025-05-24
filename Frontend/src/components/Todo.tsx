@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface TodoProps {
   title: string;
@@ -7,9 +8,10 @@ interface TodoProps {
   scheduledTime: number;
   onComplete: () => void;
   onPress: () => void;
+  onDelete: () => void;
 }
 
-export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete, onPress }: TodoProps) => {
+export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete, onPress, onDelete }: TodoProps) => {
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -31,11 +33,20 @@ export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete,
           <Text style={styles.completedBy}>Done by {completedBy}</Text>
         )}
       </View>
-      <TouchableOpacity 
-        style={[styles.checkbox, completed && styles.checked]} 
-        onPress={onComplete}
-        testID="todo-checkbox"
-      />
+      <View style={styles.actions}>
+        <TouchableOpacity 
+          testID="delete-todo-button"
+          style={styles.deleteButton}
+          onPress={onDelete}
+        >
+          <Ionicons name="trash-outline" size={24} color="#ff3b30" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.checkbox, completed && styles.checked]} 
+          onPress={onComplete}
+          testID="todo-checkbox"
+        />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -74,13 +85,20 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    marginRight: 10,
+    padding: 5,
+  },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#007AFF',
-    marginLeft: 10,
   },
   checked: {
     backgroundColor: '#007AFF',

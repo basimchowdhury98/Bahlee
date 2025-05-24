@@ -29,5 +29,10 @@ export const todosService = {
       completed: false,
       scheduledTime,
     });
+  },
+
+  deleteTodo: async (id: string): Promise<void> => {
+    // This will eventually be replaced with Firebase
+    return Promise.resolve();
   }
 }; 

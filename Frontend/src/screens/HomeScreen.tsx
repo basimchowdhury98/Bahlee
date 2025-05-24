@@ -48,6 +48,15 @@ export const HomeScreen = () => {
     console.log('Todo pressed:', id);
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await todosService.deleteTodo(id);
+      setTodos(todos.filter(todo => todo.id !== id));
+    } catch (err) {
+      setError('Failed to delete todo');
+    }
+  };
+
   const handleAddTodo = async (title: string, timeString: string) => {
     try {
       // Convert time string (e.g. "2:00 PM") to seconds since midnight
@@ -87,6 +96,7 @@ export const HomeScreen = () => {
             scheduledTime={item.scheduledTime}
             onComplete={() => handleComplete(item.id)}
             onPress={() => handlePress(item.id)}
+            onDelete={() => handleDelete(item.id)}
           />
         )}
         contentContainerStyle={styles.list}

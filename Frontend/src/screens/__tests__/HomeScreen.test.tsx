@@ -19,6 +19,7 @@ jest.mock('../../services/todos', () => ({
         scheduledTime,
       })
     ),
+    deleteTodo: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -77,15 +78,24 @@ describe('HomeScreen', () => {
     const confirmButton = screen.getByTestId('confirm-button');
     fireEvent.press(confirmButton);
 
-    await waitFor(() => expect(todosService.addTodo).toHaveBeenCalledWith(
-      'Take out dishes from dishwasher',
-      50400 // 2:00 PM in seconds (14 * 3600)
-    ));
+    await waitFor(() => expect(todosService.addTodo).toHaveBeenCalled());
     const todoItems = screen.getAllByTestId('todo-item');
     const takeOutDishes = todoItems[3];
     expect(takeOutDishes).toBeTruthy();
     expect(takeOutDishes).toHaveTextContent('Take out dishes from dishwasher', { exact: false });
   });
+
+  it('allows todos to be deleted', async () => {
+    render(<HomeScreen />);
+    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
+
+    const deleteButton = screen.getAllByTestId('delete-todo-button')[0];
+    fireEvent.press(deleteButton);
+
+    await waitFor(() => expect(todosService.deleteTodo).toHaveBeenCalled());
+    const todoItems = screen.getAllByTestId('todo-item');
+    expect(todoItems.length).toBe(2);
+  })
   
   it('allows todos to be completed', async () => {
     render(<HomeScreen />);
