@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { colors } from '../theme/colors';
 
 interface AddTodoFormProps {
   visible: boolean;
@@ -48,13 +49,15 @@ export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) =>
     >
       <View style={styles.modalContainer}>
         <View style={styles.formContainer}>
-          <Text style={styles.title}>Add New Todo</Text>
+          <Text style={styles.title}>Add New Activity</Text>
           <TextInput
             testID="todo-name-input"
-            style={styles.input}
+            style={[styles.input, { color: colors.text.primary }]}
             value={title}
             onChangeText={setTitle}
-            placeholder="Todo name"
+            placeholder="Activity name"
+            placeholderTextColor={colors.text.secondary}
+            selectionColor={colors.text.accent}
           />
           
           {Platform.OS === 'ios' ? (
@@ -67,6 +70,8 @@ export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) =>
                 is24Hour={false}
                 onChange={handleTimeChange}
                 style={styles.timePicker}
+                textColor={colors.text.primary}
+                themeVariant="dark"
               />
             </View>
           ) : (
@@ -88,6 +93,7 @@ export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) =>
                   mode="time"
                   is24Hour={false}
                   onChange={handleTimeChange}
+                  themeVariant="dark"
                 />
               )}
             </>
@@ -105,7 +111,7 @@ export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) =>
               style={[styles.button, styles.confirmButton]} 
               onPress={handleSubmit}
             >
-              <Text style={styles.buttonText}>Add Todo</Text>
+              <Text style={styles.buttonText}>Add Activity</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -119,73 +125,71 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
   formContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.background.card,
     padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     marginBottom: 20,
     textAlign: 'center',
+    color: colors.text.primary,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    fontSize: 16,
   },
   timePickerContainer: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   timeLabel: {
     fontSize: 16,
-    color: '#666',
-    marginBottom: 5,
+    color: colors.text.primary,
+    marginBottom: 8,
   },
   timePicker: {
     height: 120,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
   },
   timeButton: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
   timeButtonText: {
     fontSize: 16,
-    color: '#000',
+    color: colors.text.primary,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
   },
   button: {
     flex: 1,
-    padding: 10,
-    borderRadius: 5,
-    marginHorizontal: 5,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#ff3b30',
+    backgroundColor: colors.background.secondary,
   },
   confirmButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.text.accent,
   },
   buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: colors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 

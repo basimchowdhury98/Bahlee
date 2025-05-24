@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Todo } from '../components/Todo';
 import { AddTodoForm } from '../components/AddTodoForm';
 import { TodoItem, todosService } from '../services/todos';
+import { colors } from '../theme/colors';
 
 export const HomeScreen = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
@@ -15,7 +16,6 @@ export const HomeScreen = () => {
     const loadTodos = async () => {
       try {
         const data = await todosService.fetchTodos();
-        // Sort todos by scheduledTime
         const sortedTodos = [...data].sort((a, b) => a.scheduledTime - b.scheduledTime);
         setTodos(sortedTodos);
       } catch (err) {
@@ -59,7 +59,6 @@ export const HomeScreen = () => {
 
   const handleAddTodo = async (title: string, timeString: string) => {
     try {
-      // Convert time string (e.g. "2:00 PM") to seconds since midnight
       const [time, period] = timeString.split(' ');
       const [hours, minutes] = time.split(':').map(Number);
       let totalHours = hours;
@@ -76,15 +75,36 @@ export const HomeScreen = () => {
   };
 
   if (isLoading) {
-    return <View style={styles.container}><Text>Loading...</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
   }
 
   if (error) {
-    return <View style={styles.container}><Text>{error}</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Timeline</Text>
+      </View>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity 
+          style={styles.actionButton}
+          testID="add-todo-button"
+          onPress={() => setIsAddModalVisible(true)}
+        >
+          <Ionicons name="add-circle-outline" size={20} color={colors.text.primary} />
+          <Text style={styles.actionButtonText}>Add an activity</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id}
@@ -101,13 +121,6 @@ export const HomeScreen = () => {
         )}
         contentContainerStyle={styles.list}
       />
-      <TouchableOpacity 
-        style={styles.addButton}
-        testID="add-todo-button"
-        onPress={() => setIsAddModalVisible(true)}
-      >
-        <Ionicons name="add" size={30} color="#fff" />
-      </TouchableOpacity>
       <AddTodoForm
         visible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}
@@ -120,25 +133,48 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.primary,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  actionButtons: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 8,
+    alignSelf: 'flex-start',
+  },
+  actionButtonText: {
+    color: colors.text.primary,
+    fontSize: 16,
+    fontWeight: '500',
   },
   list: {
     padding: 20,
   },
-  addButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#007AFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+  loadingText: {
+    color: colors.text.primary,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  errorText: {
+    color: colors.status.error,
+    textAlign: 'center',
+    marginTop: 20,
   },
 }); 

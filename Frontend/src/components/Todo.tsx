@@ -1,5 +1,7 @@
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme/colors';
 
 interface TodoProps {
   title: string;
@@ -24,28 +26,41 @@ export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete,
       style={[styles.container, completed && styles.completedContainer]} 
       onPress={onPress}
     >
-      <View style={styles.content}>
-        <Text style={[styles.title, completed && styles.completedText]}>{title}</Text>
-        <Text style={styles.scheduledTime} testID="scheduled-time">
-          {formatTime(scheduledTime)}
-        </Text>
-        {completed && completedBy && (
-          <Text style={styles.completedBy}>Done by {completedBy}</Text>
-        )}
+      <View style={styles.timeContainer}>
+        <Text style={styles.time}>{formatTime(scheduledTime)}</Text>
       </View>
-      <View style={styles.actions}>
-        <TouchableOpacity 
-          testID="delete-todo-button"
-          style={styles.deleteButton}
-          onPress={onDelete}
-        >
-          <Ionicons name="trash-outline" size={24} color="#ff3b30" />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.checkbox, completed && styles.checked]} 
-          onPress={onComplete}
-          testID="todo-checkbox"
-        />
+      <View style={styles.content}>
+        <View style={styles.mainContent}>
+          <Text style={[styles.title, completed && styles.completedText]}>{title}</Text>
+          <View style={styles.metrics}>
+            <View style={styles.metricItem}>
+              <Ionicons name="time-outline" size={16} color={colors.text.secondary} />
+              <Text style={styles.metricText}>{formatTime(scheduledTime)}</Text>
+            </View>
+            {completed && completedBy && (
+              <View style={styles.metricItem}>
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.status.success} />
+                <Text style={[styles.metricText, styles.completedBy]}>Done by {completedBy}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <View style={styles.actions}>
+          <TouchableOpacity 
+            testID="delete-todo-button"
+            style={styles.actionButton}
+            onPress={onDelete}
+          >
+            <Ionicons name="trash-outline" size={20} color={colors.status.error} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.checkbox, completed && styles.checked]} 
+            onPress={onComplete}
+            testID="todo-checkbox"
+          >
+            {completed && <Ionicons name="checkmark" size={16} color={colors.text.primary} />}
+          </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -53,59 +68,80 @@ export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete,
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    backgroundColor: colors.background.card,
+    borderRadius: 16,
+    marginBottom: 12,
+    overflow: 'hidden',
   },
   completedContainer: {
-    backgroundColor: '#f8f8f8',
+    opacity: 0.8,
+  },
+  timeContainer: {
+    backgroundColor: colors.background.secondary,
+    padding: 8,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.background.primary,
+  },
+  time: {
+    color: colors.text.secondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   content: {
+    flexDirection: 'row',
+    padding: 16,
+    alignItems: 'center',
+  },
+  mainContent: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
-    color: '#1a1a1a',
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 8,
   },
   completedText: {
-    color: '#888',
+    color: colors.text.secondary,
     textDecorationLine: 'line-through',
   },
+  metrics: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  metricItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metricText: {
+    color: colors.text.secondary,
+    fontSize: 14,
+  },
   completedBy: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    color: colors.status.success,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
-  deleteButton: {
-    marginRight: 10,
-    padding: 5,
+  actionButton: {
+    padding: 4,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#007AFF',
+    borderColor: colors.text.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checked: {
-    backgroundColor: '#007AFF',
-  },
-  scheduledTime: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+    backgroundColor: colors.text.accent,
   },
 }); 
