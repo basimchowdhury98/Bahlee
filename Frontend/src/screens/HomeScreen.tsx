@@ -13,7 +13,9 @@ export const HomeScreen = () => {
     const loadTodos = async () => {
       try {
         const data = await todosService.fetchTodos();
-        setTodos(data);
+        // Sort todos by scheduledTime
+        const sortedTodos = [...data].sort((a, b) => a.scheduledTime - b.scheduledTime);
+        setTodos(sortedTodos);
       } catch (err) {
         setError('Failed to load todos');
       } finally {
@@ -62,6 +64,7 @@ export const HomeScreen = () => {
             title={item.title}
             completed={item.completed}
             completedBy={item.completedBy}
+            scheduledTime={item.scheduledTime}
             onComplete={() => handleComplete(item.id)}
             onPress={() => handlePress(item.id)}
           />

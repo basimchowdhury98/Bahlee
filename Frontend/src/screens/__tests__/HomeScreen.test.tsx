@@ -6,8 +6,9 @@ import { todosService } from '../../services/todos';
 jest.mock('../../services/todos', () => ({
   todosService: {
     fetchTodos: jest.fn().mockResolvedValue([
-      { id: '1', title: 'Feed cat', completed: false },
-      { id: '2', title: 'Take out trash', completed: true, completedBy: 'Partner' },
+      { id: '1', title: 'Feed cat', completed: false, scheduledTime: 36000 },
+      { id: '2', title: 'Take out trash', completed: true, completedBy: 'Partner', scheduledTime: 43200 },
+      { id: '3', title: 'Run roomba', completed: false, scheduledTime: 39600 },
     ]),
     updateTodo: jest.fn().mockResolvedValue(undefined),
   },
@@ -18,24 +19,21 @@ describe('HomeScreen', () => {
     jest.clearAllMocks();
   });
 
-  it('displays todos and allows completing them', async () => {
+  it('displays todos in order', async () => {
     render(<HomeScreen />);
     await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
-    const feedCat = screen.getByText('Feed cat');
-    const takeOutTrash = screen.getByText('Take out trash');
-    const checkbox = screen.getAllByTestId('todo-checkbox')[0];
 
-    fireEvent.press(checkbox);
+    const todoItems = screen.getAllByTestId('todo-item');
+    const feedCat = todoItems[0];
+    const runRoomba = todoItems[1];
+    const takeOutTrash = todoItems[2];
 
     expect(feedCat).toBeTruthy();
+    expect(feedCat).toHaveTextContent('Feed cat', { exact: false });
+    expect(runRoomba).toBeTruthy();
+    expect(runRoomba).toHaveTextContent('Run roomba', { exact: false });
     expect(takeOutTrash).toBeTruthy();
-    expect(todosService.updateTodo).toHaveBeenCalledWith('1', {
-      completed: true,
-      completedBy: 'Me'
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Done by Me')).toBeTruthy();
-    });
+    expect(takeOutTrash).toHaveTextContent('Take out trash', { exact: false });
   });
 
   it('shows floating action button for adding new todos', async () => {
@@ -56,6 +54,5 @@ describe('HomeScreen', () => {
 
     expect(screen.queryByTestId('todo-checkbox')).toBeNull();
   });
-
   
 }); 

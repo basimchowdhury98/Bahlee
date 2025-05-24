@@ -4,18 +4,29 @@ interface TodoProps {
   title: string;
   completed: boolean;
   completedBy?: string;
+  scheduledTime: number;
   onComplete: () => void;
   onPress: () => void;
 }
 
-export const Todo = ({ title, completed, completedBy, onComplete, onPress }: TodoProps) => {
+export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete, onPress }: TodoProps) => {
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
   return (
     <TouchableOpacity 
+      testID="todo-item"
       style={[styles.container, completed && styles.completedContainer]} 
       onPress={onPress}
     >
       <View style={styles.content}>
         <Text style={[styles.title, completed && styles.completedText]}>{title}</Text>
+        <Text style={styles.scheduledTime} testID="scheduled-time">
+          {formatTime(scheduledTime)}
+        </Text>
         {completed && completedBy && (
           <Text style={styles.completedBy}>Done by {completedBy}</Text>
         )}
@@ -73,5 +84,10 @@ const styles = StyleSheet.create({
   },
   checked: {
     backgroundColor: '#007AFF',
+  },
+  scheduledTime: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
 }); 
