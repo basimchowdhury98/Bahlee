@@ -46,4 +46,16 @@ describe('HomeScreen', () => {
 
     expect(addButton).toBeTruthy();
   });
+
+  it('shows nothing when no todos are returned', async () => {
+    // Override mock for this test
+    (todosService.fetchTodos as jest.Mock).mockResolvedValueOnce([]);
+    
+    render(<HomeScreen />);
+    await waitFor(() => expect(todosService.fetchTodos).toHaveBeenCalled());
+
+    expect(screen.queryByTestId('todo-checkbox')).toBeNull();
+  });
+
+  
 }); 
