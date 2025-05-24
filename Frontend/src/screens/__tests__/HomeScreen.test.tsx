@@ -74,8 +74,14 @@ describe('HomeScreen', () => {
     fireEvent.press(addButton);
     const todoNameInput = screen.getByTestId('todo-name-input');
     fireEvent.changeText(todoNameInput, 'Take out dishes from dishwasher');
-    const todoScheduledTimeInput = screen.getByTestId('todo-scheduled-time-input');
-    fireEvent.changeText(todoScheduledTimeInput, '2:00 PM');
+    const timeInput = screen.getByTestId('todo-scheduled-time-input');
+    const selectedDate = new Date();
+    selectedDate.setHours(14); // 2 PM
+    selectedDate.setMinutes(0);
+    fireEvent(timeInput, 'onChange', {
+      nativeEvent: { timestamp: selectedDate.getTime() },
+      type: 'set',
+    }, selectedDate);
     const confirmButton = screen.getByTestId('confirm-button');
     fireEvent.press(confirmButton);
 
@@ -84,6 +90,7 @@ describe('HomeScreen', () => {
     const takeOutDishes = todoItems[3];
     expect(takeOutDishes).toBeTruthy();
     expect(takeOutDishes).toHaveTextContent('Take out dishes from dishwasher', { exact: false });
+    expect(takeOutDishes).toHaveTextContent('14:00', { exact: false });
   });
 
   it('allows todos to be deleted', async () => {

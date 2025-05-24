@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, View, TextInput, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface AddTodoFormProps {
   visible: boolean;
@@ -9,12 +10,34 @@ interface AddTodoFormProps {
 
 export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) => {
   const [title, setTitle] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
 
   const handleSubmit = () => {
-    onSubmit(title, scheduledTime);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    const timeString = `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    
+    onSubmit(title, timeString);
     setTitle('');
-    setScheduledTime('');
+    setDate(new Date());
+  };
+
+  const formatTimeForDisplay = (date: Date) => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  const handleTimeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowPicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
   };
 
   return (
@@ -33,13 +56,43 @@ export const AddTodoForm = ({ visible, onClose, onSubmit }: AddTodoFormProps) =>
             onChangeText={setTitle}
             placeholder="Todo name"
           />
-          <TextInput
-            testID="todo-scheduled-time-input"
-            style={styles.input}
-            value={scheduledTime}
-            onChangeText={setScheduledTime}
-            placeholder="Scheduled time (e.g. 2:00 PM)"
-          />
+          
+          {Platform.OS === 'ios' ? (
+            <View style={styles.timePickerContainer}>
+              <Text style={styles.timeLabel}>Scheduled Time:</Text>
+              <DateTimePicker
+                testID="todo-scheduled-time-input"
+                value={date}
+                mode="time"
+                is24Hour={false}
+                onChange={handleTimeChange}
+                style={styles.timePicker}
+              />
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                testID="todo-scheduled-time-input"
+                style={styles.timeButton}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text style={styles.timeButtonText}>
+                  {formatTimeForDisplay(date)}
+                </Text>
+              </TouchableOpacity>
+
+              {showPicker && (
+                <DateTimePicker
+                  testID="todo-scheduled-time-picker"
+                  value={date}
+                  mode="time"
+                  is24Hour={false}
+                  onChange={handleTimeChange}
+                />
+              )}
+            </>
+          )}
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.button, styles.cancelButton]} 
@@ -91,6 +144,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 15,
+  },
+  timePickerContainer: {
+    marginBottom: 15,
+  },
+  timeLabel: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 5,
+  },
+  timePicker: {
+    height: 120,
+  },
+  timeButton: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+  },
+  timeButtonText: {
+    fontSize: 16,
+    color: '#000',
   },
   buttonContainer: {
     flexDirection: 'row',
