@@ -9,15 +9,33 @@ interface TodoProps {
   completedBy?: string;
   scheduledTime: number;
   onComplete: () => void;
+  onUndoComplete: () => void;
   onPress: () => void;
   onDelete: () => void;
 }
 
-export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete, onPress, onDelete }: TodoProps) => {
+export const Todo = ({ 
+  title, 
+  completed, 
+  completedBy, 
+  scheduledTime, 
+  onComplete,
+  onUndoComplete, 
+  onPress, 
+  onDelete 
+}: TodoProps) => {
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const handleCheckboxPress = () => {
+    if (completed) {
+      onUndoComplete();
+    } else {
+      onComplete();
+    }
   };
 
   return (
@@ -55,7 +73,7 @@ export const Todo = ({ title, completed, completedBy, scheduledTime, onComplete,
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.checkbox, completed && styles.checked]} 
-            onPress={onComplete}
+            onPress={handleCheckboxPress}
             testID="todo-checkbox"
           >
             {completed && <Ionicons name="checkmark" size={16} color={colors.text.primary} />}

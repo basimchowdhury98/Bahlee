@@ -97,6 +97,23 @@ describe('HomeScreen', () => {
     expect(feedCat).toHaveTextContent('Feed cat', { exact: false });
     expect(feedCat).toHaveTextContent('Done by me', { exact: false });
   })
+
+  it ('allows todo to be unchecked', async () => {
+    const feedCatCheckbox = screen.getAllByTestId('todo-checkbox')[0];
+    fireEvent.press(feedCatCheckbox);
+    await waitFor(() => expect(todosService.updateTodo).toHaveBeenCalled());
+    const todoItems = screen.getAllByTestId('todo-item');
+    const feedCat = todoItems[0];
+    expect(feedCat).toHaveTextContent('Feed cat', { exact: false });
+    expect(feedCat).toHaveTextContent('Done by me', { exact: false });
+
+    fireEvent.press(feedCatCheckbox);
+    
+    await waitFor(() => expect(todosService.updateTodo).toHaveBeenCalled());
+    const feedCatUnchecked = todoItems[0];
+    expect(feedCatUnchecked).toHaveTextContent('Feed cat', { exact: false });
+    expect(feedCatUnchecked).not.toHaveTextContent('Done by me', { exact: false });
+  })
 }); 
 
 const setTodoScheduledTimeToHour = async (hour: number) => {

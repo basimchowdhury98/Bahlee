@@ -43,6 +43,22 @@ export const HomeScreen = () => {
     }
   };
 
+  const handleUndoComplete = async (id: string) => {
+    try {
+      await todosService.updateTodo(id, {
+        completed: false,
+        completedBy: undefined
+      });
+      setTodos(todos.map(todo => 
+        todo.id === id 
+          ? { ...todo, completed: false, completedBy: undefined }
+          : todo
+      ));
+    } catch (err) {
+      setError('Failed to update todo');
+    }
+  };
+
   const handlePress = (id: string) => {
     // TODO: Navigate to todo detail screen
     console.log('Todo pressed:', id);
@@ -115,6 +131,7 @@ export const HomeScreen = () => {
             completedBy={item.completedBy}
             scheduledTime={item.scheduledTime}
             onComplete={() => handleComplete(item.id)}
+            onUndoComplete={() => handleUndoComplete(item.id)}
             onPress={() => handlePress(item.id)}
             onDelete={() => handleDelete(item.id)}
           />
