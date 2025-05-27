@@ -22,10 +22,16 @@
         "backgroundColor": "#1A1118"
       },
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.bchowdhury.bahlee"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5ffcab48-7812-4f32-b133-93f49ce3b09f"
+      }
     }
   }
 }

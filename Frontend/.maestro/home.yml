@@ -1,0 +1,8 @@
+appId: com.bchowdhury.bahlee
+---
+- launchApp
+- tapOn: 'Add an activity'
+- tapOn: 'Activity name'
+- inputText: 'Test Activity'
+- tapOn: 'Add Activity'
+- assertVisible: 'Test Activity'
