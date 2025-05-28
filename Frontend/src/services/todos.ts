@@ -1,3 +1,6 @@
+import { ref, get, set, update, remove, push } from 'firebase/database';
+import { db } from '../config/firebase';
+
 export interface TodoItem {
   id: string;
   title: string;
@@ -8,31 +11,45 @@ export interface TodoItem {
 
 export const todosService = {
   fetchTodos: async (): Promise<TodoItem[]> => {
-    // This will eventually be replaced with Firebase
-    return [
-      { id: '1', title: 'Feed cat', completed: false, scheduledTime: 36000 },
-      { id: '2', title: 'Take out trash', completed: true, completedBy: 'Partner', scheduledTime: 43200 },
-      { id: '3', title: 'Run roomba', completed: false, scheduledTime: 39600 },
-    ];
+    const todosRef = ref(db, 'todos');
+    const snapshot = await get(todosRef);
+    
+    if (!snapshot.exists()) {
+      return [];
+    }
+
+    const data = snapshot.val();
+    return Object.keys(data).map(key => ({
+      id: key,
+      ...data[key]
+    }));
   },
   
   updateTodo: async (id: string, updates: Partial<TodoItem>): Promise<void> => {
-    // This will eventually be replaced with Firebase
-    return Promise.resolve();
+    const todoRef = ref(db, `todos/${id}`);
+    await update(todoRef, updates);
   },
 
   addTodo: async (title: string, scheduledTime: number): Promise<TodoItem> => {
-    // This will eventually be replaced with Firebase
-    return Promise.resolve({
-      id: Math.random().toString(36).substr(2, 9),
+    const todosRef = ref(db, 'todos');
+    const newTodoRef = push(todosRef);
+    
+    const newTodo = {
       title,
       completed: false,
       scheduledTime,
-    });
+    };
+    
+    await set(newTodoRef, newTodo);
+    
+    return {
+      id: newTodoRef.key!,
+      ...newTodo
+    };
   },
 
   deleteTodo: async (id: string): Promise<void> => {
-    // This will eventually be replaced with Firebase
-    return Promise.resolve();
+    const todoRef = ref(db, `todos/${id}`);
+    await remove(todoRef);
   }
 }; 
