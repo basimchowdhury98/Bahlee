@@ -1,12 +1,24 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Post } from '@nestjs/common';
+import { Bot } from 'grammy';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+    todo: string = 'Feed cat';
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
+    constructor(private readonly configService: ConfigService) { }
+
+    @Get()
+    getHello(): string {
+        return this.todo;
+    }
+
+    @Post('test-notif')
+    testNotif(): void {
+        const bot = new Bot(this.configService.get<string>('BOT_ID') as string);
+        const basimChatId = this.configService.get<string>('BASIM_CHAT_ID') as string;
+        const mahleeChatId = this.configService.get<string>('MAHLEE_CHAT_ID') as string;
+        bot.api.sendMessage(basimChatId, "Peepee poopoo");
+        bot.api.sendMessage(mahleeChatId, "Peepee poopoo Mahee");
+    }
 }
