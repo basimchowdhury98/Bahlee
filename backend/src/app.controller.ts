@@ -1,12 +1,23 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { Bot } from 'grammy';
-import { ConfigService } from '@nestjs/config';
+import { TelegramBot } from './telegram.bot';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
 
 @Controller()
 export class AppController {
     todo: string = 'Feed cat';
 
-    constructor(private readonly configService: ConfigService) { }
+    constructor(
+        private readonly telegramBot: TelegramBot,
+        private readonly schedulerRegistry: SchedulerRegistry)
+        {
+            const todoJob = new CronJob('0 9 * * *', () => {
+                this.telegramBot.sendTodo()
+            });
+
+            this.schedulerRegistry.addCronJob('todo', todoJob);
+            todoJob.start();
+        }
 
     @Get()
     getHello(): string {
@@ -15,10 +26,6 @@ export class AppController {
 
     @Post('test-notif')
     testNotif(): void {
-        const bot = new Bot(this.configService.get<string>('BOT_ID') as string);
-        const basimChatId = this.configService.get<string>('BASIM_CHAT_ID') as string;
-        const mahleeChatId = this.configService.get<string>('MAHLEE_CHAT_ID') as string;
-        bot.api.sendMessage(basimChatId, "Peepee poopoo");
-        bot.api.sendMessage(mahleeChatId, "Peepee poopoo Mahee");
+        this.telegramBot.sendTodo();
     }
 }
