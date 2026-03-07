@@ -37,7 +37,7 @@ int main()
 
     while (1) {
         struct sockaddr accept_addr;
-        socklen_t accept_addr_len;
+        socklen_t accept_addr_len = sizeof(accept_addr);
 
         int accept_fd = accept(server_fd, &accept_addr, &accept_addr_len);
         if (accept_fd == -1) {
