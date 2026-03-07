@@ -1,7 +1,5 @@
-
 #ifndef REQUEST_H
 #define REQUEST_H
-
 
 typedef struct {
     char *key;
@@ -14,10 +12,10 @@ typedef struct {
     char *method;
 } RequestLine;
 
-struct HttpRequest {
+typedef struct {
     RequestLine requestLine;
     Header *headerLines;
-};
+} HttpRequest;
 
-struct HttpRequest read_from_chars(char *chars);
+int read_from_chars(char *chars, HttpRequest *request);
 #endif // REQUEST_H
