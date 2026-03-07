@@ -1,3 +1,4 @@
+.PHONY: build run test
 CC = gcc
 CFLAGS = -Wall -Wextra
 
@@ -6,3 +7,6 @@ build:
 
 run: build
 	./output/server
+
+test: build
+	ceedling test:all
