@@ -7,9 +7,9 @@ typedef struct {
 } Header;
 
 typedef struct {
-    char *httpVersion;
-    char *requestTarget;
-    char *method;
+    char httpVersion[9];
+    char requestTarget[128];
+    char method[8];
 } RequestLine;
 
 typedef struct {
@@ -17,5 +17,12 @@ typedef struct {
     Header *headerLines;
 } HttpRequest;
 
-int read_from_chars(char *chars, HttpRequest *request);
+typedef enum {
+    EMPTY,
+    REQ_LINE_MISSING_METHOD,
+    REQ_LINE_MISSING_TARGET,
+    REQ_LINE_MISSING_VERSION
+} HttpParseError;
+
+int read_from_chars(char *request_chars, HttpRequest *request, HttpParseError *error);
 #endif // REQUEST_H

@@ -1,9 +1,9 @@
 #ifdef TEST
 
-#define TEST_ASSERT_STRUCT_ZEROED(s) TEST_ASSERT_EQUAL_MEMORY(&(s), &(typeof(s)){0}, sizeof(s))
+#define TEST_ASSERT_STRUCT_ZEROED(s) TEST_ASSERT_EQUAL_MEMORY(&(s), &(typeof(s)) { 0 }, sizeof(s))
 
-#include "unity.h"
 #include "request.h"
+#include "unity.h"
 
 void setUp(void)
 {
@@ -15,34 +15,64 @@ void tearDown(void)
 
 void test_readEmptyString_returnsNeg1(void)
 {
-    char *input = "\0";
-    HttpRequest req = {0};
+    char* input = "";
+    HttpRequest req = { 0 };
+    HttpParseError err;
 
-    int result = read_from_chars(input, &req);
+    int result = read_from_chars(input, &req, &err);
 
     TEST_ASSERT_EQUAL(-1, result);
     TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(EMPTY, err);
 }
 
-void test_readNoValidRequestLine_returnsNeg1(void)
+void test_readInvalidRequestLine_ReturnsNeg1()
 {
-    char *input = "notvalid\0";
-    HttpRequest req = {0};
+    char* input = "notvalid";
+    HttpRequest req = { 0 };
+    HttpParseError err;
 
-    int result = read_from_chars(input, &req);
+    int result = read_from_chars(input, &req, &err);
 
     TEST_ASSERT_EQUAL(-1, result);
     TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(REQ_LINE_MISSING_METHOD, err);
+}
+
+void test_readReqLineWithJustMethod_ReturnsNeg1()
+{
+    char* input = "POST ";
+    HttpRequest req = { 0 };
+    HttpParseError err;
+
+    int result = read_from_chars(input, &req, &err);
+
+    TEST_ASSERT_EQUAL(-1, result);
+    TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(REQ_LINE_MISSING_TARGET, err);
+}
+
+void test_readReqLineMissingHttpVersion_ReturnsNeg1()
+{
+    char* input = "POST / ";
+    HttpRequest req = { 0 };
+    HttpParseError err;
+
+    int result = read_from_chars(input, &req, &err);
+
+    TEST_ASSERT_EQUAL(-1, result);
+    TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(REQ_LINE_MISSING_VERSION, err);
 }
 
 void test_readValidHttpRequest_returnSuccess(void)
 {
-    char *input = 
-        "POST / HTTP/1.1\r\n"
-        "Key: Value\r\n\r\n\0";
-    HttpRequest req = {0};
+    char* input = "POST / HTTP/1.1\r\n"
+                  "Key: Value\r\n\r\n";
+    HttpRequest req = { 0 };
+    HttpParseError err;
 
-    int result = read_from_chars(input, &req);
+    int result = read_from_chars(input, &req, &err);
 
     TEST_ASSERT_EQUAL(0, result);
     // TEST_ASSERT_EQUAL_STRING("POST", req.requestLine.method);
