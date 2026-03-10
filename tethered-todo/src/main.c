@@ -52,7 +52,7 @@ int main()
                 perror("Socket read failure\n");
                 close(accept_fd);
                 free(buff);
-                continue;
+                break;
             }
             if (len == 0) {
                 printf("End of message\n");

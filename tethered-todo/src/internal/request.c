@@ -1,9 +1,11 @@
 #include "request.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int read_line_term(char* text);
 int read_word(char* text, int max_size, char word[max_size]);
+int read_header(char *header_sec, Header *header);
 
 int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* error)
 {
@@ -23,8 +25,8 @@ int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* e
     rq_stage.requestLine.method[method_size] = '\0';
     curr_rc_index += method_size + 1;
 
-    char path_start = request_chars[curr_rc_index];
-    if (path_start != '/') {
+    char target_start = request_chars[curr_rc_index];
+    if (target_start != '/') {
         *error = REQ_LINE_MISSING_TARGET;
         return -1;
     }
@@ -56,44 +58,58 @@ int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* e
     curr_rc_index += line_term_size;
 
     Header header = { 0 };
-    char key_buf[MAX_WORD_LENGTH + 1] = { 0 };
-    int header_key_size = read_word(request_chars + curr_rc_index, MAX_WORD_LENGTH + 1, key_buf);
-    if (header_key_size == -1) {
+    int header_size = read_header(request_chars + curr_rc_index, &header);
+    if (header_size == -1){
         *error = REQ_HAS_MALFORMED_HEADERS;
+        return -1;
+    }
+    curr_rc_index += header_size;
+
+    line_term_size = read_line_term(request_chars + curr_rc_index);
+    if (line_term_size == -1)
+    {
+        *error = REQ_NOT_TERMINATED;
+        return -1;
+    }
+    curr_rc_index += line_term_size;
+    rq_stage.headerLines = malloc(sizeof(Header));
+    *rq_stage.headerLines = header;
+
+    *request = rq_stage;
+    return 0;
+}
+
+int read_header(char *header_sec, Header *header)
+{
+    Header header_stage = { 0 };
+    char key_buf[MAX_WORD_LENGTH + 1] = { 0 };
+    int header_key_size = read_word(header_sec, MAX_WORD_LENGTH + 1, key_buf);
+    if (header_key_size == -1) {
         return -1;
     }
     if (key_buf[header_key_size - 1] != ':') {
-        *error = REQ_HAS_MALFORMED_HEADERS;
         return -1;
     }
-    strncpy(header.key, key_buf, header_key_size - 1);
-    header.key[header_key_size] = '\0';
-    curr_rc_index += header_key_size + 1;
+    strncpy(header_stage.key, key_buf, header_key_size - 1);
+    header_stage.key[header_key_size] = '\0';
 
-    int header_val_size = read_word(request_chars + curr_rc_index, MAX_WORD_LENGTH, header.value);
+    int header_index = header_key_size + 1;
+    int header_val_size = read_word(header_sec + header_index, MAX_WORD_LENGTH, header_stage.value);
     if (header_val_size == -1) {
-        *error = REQ_HAS_MALFORMED_HEADERS;
         return -1;
     }
-    header.value[header_val_size] = '\0';
-    curr_rc_index += header_val_size;
+    header_stage.value[header_val_size] = '\0';
 
-    line_term_size = read_line_term(request_chars + curr_rc_index);
-    if (line_term_size == -1)
+    header_index += header_val_size;
+    int header_term_size = read_line_term(header_sec + header_index);
+    if (header_term_size == -1)
     {
-        *error = REQ_HAS_MALFORMED_HEADERS;
         return -1;
     }
-    curr_rc_index += line_term_size;
+    header_index += header_term_size;
 
-    line_term_size = read_line_term(request_chars + curr_rc_index);
-    if (line_term_size == -1)
-    {
-        *error = REQ_HAS_MALFORMED_HEADERS;
-        return -1;
-    }
-    curr_rc_index += line_term_size;
-    return 0;
+    *header = header_stage;
+    return header_index;
 }
 
 int read_line_term(char* text){

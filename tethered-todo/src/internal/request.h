@@ -28,7 +28,8 @@ typedef enum {
     REQ_LINE_MISSING_TARGET,
     REQ_LINE_MISSING_VERSION,
     REQ_LINE_NOT_TERMINATED,
-    REQ_HAS_MALFORMED_HEADERS
+    REQ_HAS_MALFORMED_HEADERS,
+    REQ_NOT_TERMINATED
 } HttpParseError;
 
 int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* error);

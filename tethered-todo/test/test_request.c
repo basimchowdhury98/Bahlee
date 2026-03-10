@@ -143,8 +143,23 @@ void test_readReqHasNoReqTerm_ReturnsNeg1()
 
     TEST_ASSERT_EQUAL(-1, result);
     TEST_ASSERT_STRUCT_ZEROED(req);
-    TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
+    TEST_ASSERT_EQUAL(REQ_NOT_TERMINATED, err);
 }
+
+// void test_readReqHasValidAndInvalidHeader_ReturnsNeg1()
+// {
+//     char* input = "POST / HTTP/1.1\r\n"
+//                   "Key: Value\r\n"
+//                   "KeyWithNoColon Value\r\n\r\n";
+//     HttpRequest req = { 0 };
+//     HttpParseError err;
+//
+//     int result = read_from_chars(input, &req, &err);
+//
+//     TEST_ASSERT_EQUAL(-1, result);
+//     TEST_ASSERT_STRUCT_ZEROED(req);
+//     TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
+// }
 
 void test_readValidHttpRequest_returnSuccess(void)
 {
@@ -156,12 +171,12 @@ void test_readValidHttpRequest_returnSuccess(void)
     int result = read_from_chars(input, &req, &err);
 
     TEST_ASSERT_EQUAL(0, result);
-    // TEST_ASSERT_EQUAL_STRING("POST", req.requestLine.method);
-    // TEST_ASSERT_EQUAL_STRING("/", req.requestLine.requestTarget);
-    // TEST_ASSERT_EQUAL_STRING("HTTP/1.1", req.requestLine.httpVersion);
-    // TEST_ASSERT_NOT_NULL(req.headerLines);
-    // TEST_ASSERT_EQUAL_STRING("Key", req.headerLines[0].key);
-    // TEST_ASSERT_EQUAL_STRING("Value", req.headerLines[0].value);
+    TEST_ASSERT_EQUAL_STRING("POST", req.requestLine.method);
+    TEST_ASSERT_EQUAL_STRING("/", req.requestLine.requestTarget);
+    TEST_ASSERT_EQUAL_STRING("HTTP/1.1", req.requestLine.httpVersion);
+    TEST_ASSERT_NOT_NULL(req.headerLines);
+    TEST_ASSERT_EQUAL_STRING("Key", req.headerLines[0].key);
+    TEST_ASSERT_EQUAL_STRING("Value", req.headerLines[0].value);
 }
 
 #endif // TEST
