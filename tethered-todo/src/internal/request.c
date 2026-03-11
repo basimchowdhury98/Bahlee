@@ -5,7 +5,7 @@
 
 int read_line_term(char* text);
 int read_word(char* text, int max_size, char word[max_size]);
-int read_header(char *header_sec, Header *header);
+int read_header(char* header_sec, Header* header);
 
 int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* error)
 {
@@ -50,36 +50,34 @@ int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* e
     rq_stage.requestLine.httpVersion[version_size] = '\0';
 
     int line_term_size = read_line_term(request_chars + curr_rc_index);
-    if (line_term_size == -1)
-    {
+    if (line_term_size == -1) {
         *error = REQ_LINE_NOT_TERMINATED;
         return -1;
     }
     curr_rc_index += line_term_size;
 
-    Header header = { 0 };
-    int header_size = read_header(request_chars + curr_rc_index, &header);
-    if (header_size == -1){
-        *error = REQ_HAS_MALFORMED_HEADERS;
-        return -1;
-    }
-    curr_rc_index += header_size;
-
     line_term_size = read_line_term(request_chars + curr_rc_index);
-    if (line_term_size == -1)
-    {
-        *error = REQ_NOT_TERMINATED;
-        return -1;
+    int header_count = 0;
+    rq_stage.headerLines = malloc(2 * sizeof(Header));
+    while (line_term_size == -1) {
+        Header header = { 0 };
+        int header_size = read_header(request_chars + curr_rc_index, &header);
+        if (header_size == -1) {
+            printf("LOCAL_DEBUG: failed here\n");
+            *error = REQ_HAS_MALFORMED_HEADERS;
+            return -1;
+        }
+        curr_rc_index += header_size;
+
+        *(rq_stage.headerLines + (header_count * sizeof(Header))) = header;
+        line_term_size = read_line_term(request_chars + curr_rc_index);
     }
-    curr_rc_index += line_term_size;
-    rq_stage.headerLines = malloc(sizeof(Header));
-    *rq_stage.headerLines = header;
 
     *request = rq_stage;
     return 0;
 }
 
-int read_header(char *header_sec, Header *header)
+int read_header(char* header_sec, Header* header)
 {
     Header header_stage = { 0 };
     char key_buf[MAX_WORD_LENGTH + 1] = { 0 };
@@ -102,8 +100,7 @@ int read_header(char *header_sec, Header *header)
 
     header_index += header_val_size;
     int header_term_size = read_line_term(header_sec + header_index);
-    if (header_term_size == -1)
-    {
+    if (header_term_size == -1) {
         return -1;
     }
     header_index += header_term_size;
@@ -112,13 +109,14 @@ int read_header(char *header_sec, Header *header)
     return header_index;
 }
 
-int read_line_term(char* text){
-    if (text[0] == '\0'){
+int read_line_term(char* text)
+{
+    if (text[0] == '\0') {
         return -1;
     }
     char line_term[2];
     line_term[0] = text[0];
-    if (text[1] == '\0'){
+    if (text[1] == '\0') {
         return -1;
     }
     line_term[1] = text[1];

@@ -143,23 +143,23 @@ void test_readReqHasNoReqTerm_ReturnsNeg1()
 
     TEST_ASSERT_EQUAL(-1, result);
     TEST_ASSERT_STRUCT_ZEROED(req);
-    TEST_ASSERT_EQUAL(REQ_NOT_TERMINATED, err);
+    TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
 }
 
-// void test_readReqHasValidAndInvalidHeader_ReturnsNeg1()
-// {
-//     char* input = "POST / HTTP/1.1\r\n"
-//                   "Key: Value\r\n"
-//                   "KeyWithNoColon Value\r\n\r\n";
-//     HttpRequest req = { 0 };
-//     HttpParseError err;
-//
-//     int result = read_from_chars(input, &req, &err);
-//
-//     TEST_ASSERT_EQUAL(-1, result);
-//     TEST_ASSERT_STRUCT_ZEROED(req);
-//     TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
-// }
+void test_readReqHasValidAndInvalidHeader_ReturnsNeg1()
+{
+    char* input = "POST / HTTP/1.1\r\n"
+                  "Key: Value\r\n"
+                  "KeyWithNoColon Value\r\n\r\n";
+    HttpRequest req = { 0 };
+    HttpParseError err;
+
+    int result = read_from_chars(input, &req, &err);
+
+    TEST_ASSERT_EQUAL(-1, result);
+    TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
+}
 
 void test_readValidHttpRequest_returnSuccess(void)
 {
