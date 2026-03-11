@@ -1,3 +1,4 @@
+#include "request.h"
 #include <asm-generic/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -43,26 +44,54 @@ int main()
         if (accept_fd == -1) {
             continue;
         }
-        char* buff = malloc(9);
+
+        int scan_range = 64;
+        int buff_size = scan_range;
+        char* buff = malloc(buff_size + 1);
         ssize_t len = 0;
+        int running_size = 0;
         printf("Reading message...\n");
         do {
-            len = read(accept_fd, buff, 8);
+            if (running_size >= buff_size) {
+                buff_size *= 2;
+                buff = realloc(buff, buff_size);
+                if (buff == NULL) {
+                    perror("Something went wrong \n");
+                    close(accept_fd);
+                    free(buff);
+                    break;
+                }
+            }
+            len = read(accept_fd, buff + running_size, scan_range);
             if (len == -1) {
                 perror("Socket read failure\n");
                 close(accept_fd);
                 free(buff);
                 break;
             }
-            if (len == 0) {
-                printf("End of message\n");
-                continue;
-            }
+            running_size += len;
+        } while (len >= scan_range);
 
-            buff[len] = '\0';
-            printf("%s", buff);
-            fflush(stdout);
-        } while (len > 0);
+        if (running_size == buff_size) {
+            buff_size *= 2;
+            buff = realloc(buff, buff_size);
+        }
+        buff[running_size] = '\0';
+
+        HttpRequest request = { 0 };
+        HttpParseError err;
+        int parse_res = read_from_chars(buff, &request, &err);
+
+        if (parse_res == 0) {
+            printf("Method: %s\n", request.requestLine.method);
+            printf("Target: %s\n", request.requestLine.requestTarget);
+            printf("Version: %s\n", request.requestLine.httpVersion);
+            for (int i = 0; i < request.headerCount; i++) {
+                printf("Header: %s: %s\n", request.headerLines[i].key, request.headerLines[i].value);
+            }
+        } else {
+            printf("Parse error: %d\n", err);
+        }
 
         close(accept_fd);
         free(buff);

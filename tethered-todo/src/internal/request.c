@@ -2,7 +2,7 @@
 #include <string.h>
 
 int read_line_term(char* text);
-int read_word(char* text, int max_size, char word[max_size+1]);
+int read_word(char* text, int scan_range, char word[scan_range+1]);
 int read_header(char* header_sec, Header* header);
 
 int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* error)
