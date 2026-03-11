@@ -161,6 +161,28 @@ void test_readReqHasValidAndInvalidHeader_ReturnsNeg1()
     TEST_ASSERT_EQUAL(REQ_HAS_MALFORMED_HEADERS, err);
 }
 
+void test_readTooManyHeaders_ReturnsNeg1()
+{
+   char* input = "POST / HTTP/1.1\r\n"
+                 "Key1: Value1\r\n"
+                 "Key2: Value2\r\n"
+                 "Key3: Value3\r\n"
+                 "Key4: Value4\r\n"
+                 "Key5: Value5\r\n"
+                 "Key6: Value6\r\n"
+                 "Key7: Value7\r\n"
+                 "Key8: Value8\r\n"
+                 "Key9: Value9\r\n\r\n";
+    HttpRequest req = { 0 };
+    HttpParseError err;
+
+    int result = read_from_chars(input, &req, &err);
+
+    TEST_ASSERT_EQUAL(-1, result);
+    TEST_ASSERT_STRUCT_ZEROED(req);
+    TEST_ASSERT_EQUAL(REQ_HAS_TOO_MANY_HEADERS, err);
+}
+
 void test_readValidHttpRequest_returnSuccess(void)
 {
     char* input = "POST / HTTP/1.1\r\n"
@@ -177,6 +199,30 @@ void test_readValidHttpRequest_returnSuccess(void)
     TEST_ASSERT_NOT_NULL(req.headerLines);
     TEST_ASSERT_EQUAL_STRING("Key", req.headerLines[0].key);
     TEST_ASSERT_EQUAL_STRING("Value", req.headerLines[0].value);
+}
+
+void test_readReqWithMultipleHeadrs_returnSuccess(void)
+{
+    char* input = "POST / HTTP/1.1\r\n"
+                  "Key: Value\r\n"
+                  "Key2: Value2\r\n"
+                  "Key3: Value3\r\n\r\n";
+    HttpRequest req = { 0 };
+    HttpParseError err;
+
+    int result = read_from_chars(input, &req, &err);
+
+    TEST_ASSERT_EQUAL(0, result);
+    TEST_ASSERT_EQUAL_STRING("POST", req.requestLine.method);
+    TEST_ASSERT_EQUAL_STRING("/", req.requestLine.requestTarget);
+    TEST_ASSERT_EQUAL_STRING("HTTP/1.1", req.requestLine.httpVersion);
+    TEST_ASSERT_NOT_NULL(req.headerLines);
+    TEST_ASSERT_EQUAL_STRING("Key", req.headerLines[0].key);
+    TEST_ASSERT_EQUAL_STRING("Value", req.headerLines[0].value);
+    TEST_ASSERT_EQUAL_STRING("Key2", req.headerLines[1].key);
+    TEST_ASSERT_EQUAL_STRING("Value2", req.headerLines[1].value);
+    TEST_ASSERT_EQUAL_STRING("Key3", req.headerLines[2].key);
+    TEST_ASSERT_EQUAL_STRING("Value3", req.headerLines[2].value);
 }
 
 #endif // TEST

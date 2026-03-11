@@ -5,6 +5,7 @@
 #define MAX_WORD_LENGTH 64
 #define MAX_HTTP_VERSION 8
 #define LINE_TERM "\r\n"
+#define MAX_HEADERS 8
 
 typedef struct {
     char key[MAX_WORD_LENGTH+1];
@@ -19,7 +20,8 @@ typedef struct {
 
 typedef struct {
     RequestLine requestLine;
-    Header* headerLines;
+    Header headerLines[MAX_HEADERS];
+    int headerCount;
 } HttpRequest;
 
 typedef enum {
@@ -29,7 +31,7 @@ typedef enum {
     REQ_LINE_MISSING_VERSION,
     REQ_LINE_NOT_TERMINATED,
     REQ_HAS_MALFORMED_HEADERS,
-    REQ_NOT_TERMINATED
+    REQ_HAS_TOO_MANY_HEADERS
 } HttpParseError;
 
 int read_from_chars(char* request_chars, HttpRequest* request, HttpParseError* error);
