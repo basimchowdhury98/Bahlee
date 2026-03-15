@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -91,6 +92,13 @@ int main()
             }
         } else {
             printf("Parse error: %d\n", err);
+        }
+
+        ssize_t write_len = 0;
+        const char* response = "HTTP/1.1 200 OK\r\n\r\n";
+        write_len = write(accept_fd, response, strlen(response));
+        if (write_len == -1) {
+            perror("Socket write failure\n");
         }
 
         close(accept_fd);

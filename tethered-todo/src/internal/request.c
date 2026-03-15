@@ -1,6 +1,7 @@
 #include "request.h"
 #include <string.h>
 
+// Could up this to parse as the data comes in instead of the entire reque
 int read_line_term(char* text);
 int read_word(char* text, int scan_range, char word[scan_range+1]);
 int read_header(char* header_sec, Header* header);
