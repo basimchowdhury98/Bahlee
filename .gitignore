@@ -49,6 +49,10 @@ Backend/node_modules/
 Backend/dist/
 Backend/build/
 
+# .NET
+bin/
+obj/
+
 # OS
 .DS_Store
 Thumbs.db 
