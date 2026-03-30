@@ -13,6 +13,7 @@ public class AppModel : PageModel
     }
 
     public string Key { get; set; } = string.Empty;
+    public string Banner { get; set; } = string.Empty;
 
     public IActionResult OnGet(string key)
     {
@@ -24,6 +25,12 @@ public class AppModel : PageModel
         }
 
         Key = key;
+
+        var banners = _configuration.GetSection("MotivationalBanners").Get<List<string>>() ?? [];
+        Banner = banners.Count > 0
+            ? banners[Random.Shared.Next(banners.Count)]
+            : "You can do it, Mahlee!";
+
         return Page();
     }
 }

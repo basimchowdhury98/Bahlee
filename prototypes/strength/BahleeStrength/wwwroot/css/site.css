@@ -33,6 +33,13 @@ body {
   min-height: 100vh;
 }
 
+/* ── App Wrapper (centered layout) ───────────────── */
+.app-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
 /* ── Motivational Header ─────────────────────────── */
 .motivational-message {
   font-size: 1.75rem;
