@@ -12,6 +12,8 @@ public class AppModel : PageModel
         _configuration = configuration;
     }
 
+    public string Key { get; set; } = string.Empty;
+
     public IActionResult OnGet(string key)
     {
         var accessKey = _configuration["AccessKey"];
@@ -21,6 +23,7 @@ public class AppModel : PageModel
             return RedirectToPage("/Index");
         }
 
+        Key = key;
         return Page();
     }
 }

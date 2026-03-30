@@ -5,5 +5,672 @@
 }
 
 <div class="text-center">
-    <h1 data-testid="motivational-message">You can do it, Mahlee!</h1>
+    <h1 class="motivational-message" data-testid="motivational-message">You can do it, Mahlee!</h1>
+    <p class="motivational-sub">Your workouts</p>
 </div>
+
+<div class="workout-cards" id="workoutCardsContainer" data-testid="workout-cards">
+    <!-- rendered by JS from localStorage -->
+</div>
+
+<!-- Workout Modal (Create / Edit) -->
+<div class="modal-overlay" id="workoutModal" data-testid="workout-modal" style="display:none;" onclick="if(event.target===this)closeModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">New Workout</h2>
+            <button class="modal-close" data-testid="modal-close" onclick="closeModal()" type="button">&times;</button>
+        </div>
+
+        <div id="workoutFormBody">
+            <input type="hidden" id="workoutId" value="" />
+
+            <div class="form-group">
+                <label class="form-label" for="workoutName">Workout Name</label>
+                <input class="form-input" type="text" id="workoutName"
+                       data-testid="workout-name-input"
+                       placeholder="e.g. Upper Body, Leg Day..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="workoutDay">Day of the Week</label>
+                <select class="form-input" id="workoutDay" data-testid="workout-day-select">
+                    <option value="0">Any Day</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="7">Sunday</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Exercises</label>
+                <div id="exerciseList" data-testid="exercise-list"></div>
+                <button class="btn-add-exercise" type="button" data-testid="add-exercise-btn" onclick="addExerciseRow()">
+                    + Add exercise
+                </button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" type="button" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" type="button" data-testid="save-workout-btn" onclick="saveWorkout()">Save</button>
+            </div>
+        </div>
+
+        <button class="btn-delete" id="deleteBtn" type="button" data-testid="delete-workout-btn"
+                style="display:none;" onclick="deleteWorkout()">
+            Delete Workout
+        </button>
+    </div>
+</div>
+
+<!-- Session Modal -->
+<div class="modal-overlay" id="sessionModal" data-testid="session-modal" style="display:none;" onclick="if(event.target===this)closeSession()">
+    <div class="session-card" onclick="event.stopPropagation()">
+        <div class="session-header">
+            <h2 class="session-title" id="sessionTitle"></h2>
+            <span class="session-day-badge" id="sessionDay"></span>
+        </div>
+
+        <div id="sessionExercises" class="session-exercises" data-testid="session-exercises"></div>
+
+        <div class="session-actions">
+            <button class="btn-cancel" data-testid="session-cancel-btn" onclick="closeSession()">Cancel</button>
+            <button class="btn-complete" data-testid="session-complete-btn" onclick="completeSession()">Complete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Rest Timer Mini-Modal -->
+<div class="modal-overlay" id="restModal" data-testid="rest-modal" style="display:none;">
+    <div class="rest-card" onclick="event.stopPropagation()">
+        <h3 class="rest-title">Rest Time</h3>
+        <div class="rest-timer-picker">
+            <div class="rest-picker-col">
+                <button class="rest-arrow" data-testid="rest-min-up" onclick="adjustRest('min', 1)">&#9650;</button>
+                <span class="rest-picker-value" id="restMinutes">02</span>
+                <button class="rest-arrow" data-testid="rest-min-down" onclick="adjustRest('min', -1)">&#9660;</button>
+                <span class="rest-picker-label">min</span>
+            </div>
+            <span class="rest-picker-colon">:</span>
+            <div class="rest-picker-col">
+                <button class="rest-arrow" data-testid="rest-sec-up" onclick="adjustRest('sec', 1)">&#9650;</button>
+                <span class="rest-picker-value" id="restSeconds">00</span>
+                <button class="rest-arrow" data-testid="rest-sec-down" onclick="adjustRest('sec', -1)">&#9660;</button>
+                <span class="rest-picker-label">sec</span>
+            </div>
+        </div>
+        <button class="btn-rest-start" data-testid="rest-start-btn" onclick="startRestTimer()">Start</button>
+    </div>
+</div>
+
+<!-- Dev/Test Controls (hidden unless window.testMode = true) -->
+<div class="dev-controls" id="devControls" data-testid="dev-controls" style="display:none;">
+    <button class="btn-dev" type="button" data-testid="load-test-data-btn" onclick="loadTestData()">Load test items</button>
+    <button class="btn-dev btn-dev--danger" type="button" data-testid="reset-btn" onclick="resetAll()">Reset</button>
+</div>
+
+@section Scripts {
+<script>
+    // ── Storage Keys ────────────────────────────────
+    const WORKOUTS_KEY = 'bahlee_workouts';
+    const HISTORY_KEY  = 'bahlee_session_history';
+
+    // ── Constants ───────────────────────────────────
+    const DAY_LABELS = ['Any Day','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const PRESET_EXERCISES = [
+        'Inclined Dumbbell Press',
+        'Machine Row',
+        'Bulgarian Split Squat',
+        'Romanian Deadlift',
+    ];
+    const NUM_SETS = 3;
+    const DEFAULT_REPS = 8;
+    const DEFAULT_WEIGHT = 5;
+
+    // ── Workout Data (localStorage) ─────────────────
+    function loadWorkouts() {
+        try {
+            return JSON.parse(localStorage.getItem(WORKOUTS_KEY)) || [];
+        } catch { return []; }
+    }
+
+    function saveWorkouts(workouts) {
+        localStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
+    }
+
+    function loadHistory() {
+        try {
+            return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        } catch { return []; }
+    }
+
+    function saveHistory(history) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function generateId() {
+        return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function sortedWorkouts(workouts) {
+        const dayOrder = [0,1,2,3,4,5,6,7]; // Any=0, Mon=1 ... Sun=7
+        return [...workouts].sort((a, b) => a.day - b.day || a.name.localeCompare(b.name));
+    }
+
+    // ── Render Workout Cards ────────────────────────
+    function renderWorkouts() {
+        const container = document.getElementById('workoutCardsContainer');
+        container.innerHTML = '';
+
+        const workouts = sortedWorkouts(loadWorkouts());
+
+        workouts.forEach(w => {
+            const card = document.createElement('div');
+            card.className = 'workout-card';
+            card.dataset.testid = 'workout-card';
+            card.dataset.workoutId = w.id;
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            card.onclick = () => openEditModal(w.id);
+
+            const exCount = w.exercises ? w.exercises.length : 0;
+            const countText = exCount > 0
+                ? `<span class="workout-card__count">${exCount} exercise${exCount === 1 ? '' : 's'}</span>`
+                : '<span class="workout-card__count workout-card__count--empty">No exercises yet</span>';
+
+            const sessionBtn = exCount > 0
+                ? `<button class="btn-start-session" data-testid="start-session-btn"
+                           onclick="event.stopPropagation(); openSession('${w.id}')">Start Session</button>`
+                : '';
+
+            card.innerHTML = `
+                <span class="workout-card__day">${DAY_LABELS[w.day] || ''}</span>
+                <span class="workout-card__name">${esc(w.name)}</span>
+                ${countText}
+                ${sessionBtn}
+            `;
+            container.appendChild(card);
+        });
+
+        // Add workout card (always last)
+        const addCard = document.createElement('div');
+        addCard.className = 'workout-card workout-card--add';
+        addCard.dataset.testid = 'add-workout-card';
+        addCard.setAttribute('role', 'button');
+        addCard.setAttribute('tabindex', '0');
+        addCard.onclick = openCreateModal;
+        addCard.innerHTML = '<span class="add-icon">+</span><span class="add-label">Add a workout</span>';
+        container.appendChild(addCard);
+    }
+
+    function esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    // ── Workout Modal (Create / Edit) ───────────────
+    let editingId = null;
+
+    function openCreateModal() {
+        editingId = null;
+        document.getElementById('modalTitle').textContent = 'New Workout';
+        document.getElementById('workoutId').value = '';
+        document.getElementById('workoutName').value = '';
+        document.getElementById('workoutDay').value = '0';
+        document.getElementById('exerciseList').innerHTML = '';
+        document.getElementById('deleteBtn').style.display = 'none';
+        document.getElementById('workoutModal').style.display = 'flex';
+        document.getElementById('workoutName').focus();
+    }
+
+    function openEditModal(id) {
+        const workouts = loadWorkouts();
+        const w = workouts.find(x => x.id === id);
+        if (!w) return;
+
+        editingId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Workout';
+        document.getElementById('workoutId').value = id;
+        document.getElementById('workoutName').value = w.name;
+        document.getElementById('workoutDay').value = String(w.day);
+
+        const list = document.getElementById('exerciseList');
+        list.innerHTML = '';
+        (w.exercises || []).forEach(ex => addExerciseRow(ex));
+
+        document.getElementById('deleteBtn').style.display = 'block';
+        document.getElementById('workoutModal').style.display = 'flex';
+        document.getElementById('workoutName').focus();
+    }
+
+    function closeModal() {
+        document.getElementById('workoutModal').style.display = 'none';
+        editingId = null;
+    }
+
+    function addExerciseRow(value) {
+        const list = document.getElementById('exerciseList');
+        const row = document.createElement('div');
+        row.className = 'exercise-row';
+
+        const select = document.createElement('select');
+        select.className = 'form-input exercise-input';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select an exercise...';
+        placeholder.disabled = true;
+        if (!value) placeholder.selected = true;
+        select.appendChild(placeholder);
+
+        PRESET_EXERCISES.forEach(ex => {
+            const opt = document.createElement('option');
+            opt.value = ex;
+            opt.textContent = ex;
+            if (value === ex) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn-remove-exercise';
+        removeBtn.type = 'button';
+        removeBtn.textContent = '\u00d7';
+        removeBtn.onclick = () => row.remove();
+
+        row.appendChild(select);
+        row.appendChild(removeBtn);
+        list.appendChild(row);
+        select.focus();
+    }
+
+    function saveWorkout() {
+        const name = document.getElementById('workoutName').value.trim();
+        if (!name) { document.getElementById('workoutName').focus(); return; }
+
+        const day = parseInt(document.getElementById('workoutDay').value);
+        const selects = document.querySelectorAll('#exerciseList select');
+        const exercises = Array.from(selects).map(s => s.value.trim()).filter(v => v);
+
+        const workouts = loadWorkouts();
+
+        if (editingId) {
+            const idx = workouts.findIndex(w => w.id === editingId);
+            if (idx !== -1) {
+                workouts[idx].name = name;
+                workouts[idx].day = day;
+                workouts[idx].exercises = exercises;
+            }
+        } else {
+            workouts.push({ id: generateId(), name, day, exercises });
+        }
+
+        saveWorkouts(workouts);
+        closeModal();
+        renderWorkouts();
+    }
+
+    function deleteWorkout() {
+        if (!editingId) return;
+        if (!confirm('Delete this workout?')) return;
+
+        const workouts = loadWorkouts().filter(w => w.id !== editingId);
+        saveWorkouts(workouts);
+        closeModal();
+        renderWorkouts();
+    }
+
+    // ── Session ─────────────────────────────────────
+    let allSets = [];
+    let activeSetIndex = -1;
+    let restTimerId = null;
+    let restMinutes = 2;
+    let restSeconds = 0;
+    let currentSessionWorkout = null;
+    let sessionSetData = []; // track reps/weight per set for history
+
+    function openSession(workoutId) {
+        const workouts = loadWorkouts();
+        const w = workouts.find(x => x.id === workoutId);
+        if (!w || !w.exercises || w.exercises.length === 0) return;
+
+        currentSessionWorkout = w;
+        sessionSetData = [];
+
+        document.getElementById('sessionTitle').textContent = w.name;
+        document.getElementById('sessionDay').textContent = DAY_LABELS[w.day] || '';
+
+        const container = document.getElementById('sessionExercises');
+        container.innerHTML = '';
+        allSets = [];
+
+        w.exercises.forEach(ex => {
+            const subcard = document.createElement('div');
+            subcard.className = 'session-exercise-card';
+
+            const headingRow = document.createElement('div');
+            headingRow.className = 'session-exercise-header';
+
+            const heading = document.createElement('h3');
+            heading.className = 'session-exercise-name';
+            heading.textContent = ex;
+            headingRow.appendChild(heading);
+
+            const histBtn = document.createElement('button');
+            histBtn.className = 'btn-history';
+            histBtn.dataset.testid = 'exercise-history-btn';
+            histBtn.textContent = 'History';
+            histBtn.onclick = (e) => { e.stopPropagation(); toggleHistory(subcard, ex); };
+            headingRow.appendChild(histBtn);
+
+            subcard.appendChild(headingRow);
+
+            for (let i = 1; i <= NUM_SETS; i++) {
+                const setRow = document.createElement('div');
+                setRow.className = 'session-set';
+                setRow.dataset.testid = 'session-set';
+                setRow.dataset.exercise = ex;
+                setRow.dataset.setNum = i;
+                setRow.innerHTML = `
+                    <span class="session-set__label">Set ${i}</span>
+                    <div class="session-set__inputs">
+                        <div class="session-input-group">
+                            <input type="number" class="session-input" data-testid="session-reps-input"
+                                   value="${DEFAULT_REPS}" min="0" />
+                            <span class="session-input-unit">reps</span>
+                        </div>
+                        <span class="session-set__separator">&times;</span>
+                        <div class="session-input-group">
+                            <input type="number" class="session-input" data-testid="session-weight-input"
+                                   value="${DEFAULT_WEIGHT}" min="0" step="0.5" />
+                            <span class="session-input-unit">lbs</span>
+                        </div>
+                    </div>
+                    <button class="btn-record" data-testid="record-btn" onclick="onRecord(this)">Record</button>
+                `;
+                subcard.appendChild(setRow);
+                allSets.push(setRow);
+            }
+
+            container.appendChild(subcard);
+        });
+
+        activeSetIndex = 0;
+        refreshActiveStates();
+        document.getElementById('sessionModal').style.display = 'flex';
+    }
+
+    function refreshActiveStates() {
+        allSets.forEach((set, idx) => {
+            const btn = set.querySelector('.btn-record');
+            set.classList.remove('session-set--active', 'session-set--done');
+
+            if (idx < activeSetIndex) {
+                set.classList.add('session-set--done');
+                btn.disabled = true;
+                btn.textContent = 'Done';
+                btn.classList.add('btn-record--done');
+                btn.classList.remove('btn-record--disabled');
+            } else if (idx === activeSetIndex) {
+                set.classList.add('session-set--active');
+                btn.disabled = !!restTimerId;
+                btn.textContent = 'Record';
+                btn.classList.toggle('btn-record--disabled', !!restTimerId);
+                btn.classList.remove('btn-record--done');
+            } else {
+                btn.disabled = true;
+                btn.textContent = 'Record';
+                btn.classList.add('btn-record--disabled');
+                btn.classList.remove('btn-record--done');
+            }
+        });
+    }
+
+    function onRecord(btn) {
+        const setRow = btn.closest('.session-set');
+        const idx = allSets.indexOf(setRow);
+        if (idx !== activeSetIndex || restTimerId) return;
+
+        // Capture the recorded values
+        const reps = parseInt(setRow.querySelector('[data-testid="session-reps-input"]').value) || 0;
+        const weight = parseFloat(setRow.querySelector('[data-testid="session-weight-input"]').value) || 0;
+        sessionSetData.push({
+            exercise: setRow.dataset.exercise,
+            set: parseInt(setRow.dataset.setNum),
+            reps,
+            weight
+        });
+
+        setRow.classList.remove('session-set--active');
+        setRow.classList.add('session-set--done');
+        btn.disabled = true;
+        btn.textContent = 'Done';
+        btn.classList.add('btn-record--done');
+
+        if (idx >= allSets.length - 1) {
+            activeSetIndex = allSets.length;
+            refreshActiveStates();
+            return;
+        }
+
+        restMinutes = 2;
+        restSeconds = 0;
+        document.getElementById('restMinutes').textContent = '02';
+        document.getElementById('restSeconds').textContent = '00';
+        document.getElementById('restModal').style.display = 'flex';
+    }
+
+    // ── Rest Timer ──────────────────────────────────
+    function adjustRest(unit, delta) {
+        if (unit === 'min') {
+            restMinutes = Math.max(0, Math.min(99, restMinutes + delta));
+            document.getElementById('restMinutes').textContent = String(restMinutes).padStart(2, '0');
+        } else {
+            restSeconds += delta * 5;
+            if (restSeconds < 0) restSeconds = 55;
+            if (restSeconds >= 60) restSeconds = 0;
+            document.getElementById('restSeconds').textContent = String(restSeconds).padStart(2, '0');
+        }
+    }
+
+    function startRestTimer() {
+        document.getElementById('restModal').style.display = 'none';
+
+        let totalSeconds = restMinutes * 60 + restSeconds;
+        if (totalSeconds <= 0) {
+            activeSetIndex++;
+            refreshActiveStates();
+            return;
+        }
+
+        const currentSet = allSets[activeSetIndex];
+        const timerDiv = document.createElement('div');
+        timerDiv.className = 'rest-timer-display';
+        timerDiv.dataset.testid = 'rest-timer-display';
+        timerDiv.innerHTML = `
+            <span class="rest-timer-icon">&#9200;</span>
+            <span class="rest-timer-countdown" id="activeCountdown">${formatTime(totalSeconds)}</span>
+            <button class="btn-rest-cancel" data-testid="rest-cancel-btn" onclick="cancelRestTimer()">Skip</button>
+        `;
+        currentSet.parentElement.insertBefore(timerDiv, currentSet.nextSibling);
+
+        activeSetIndex++;
+        restTimerId = 'pending';
+        refreshActiveStates();
+
+        restTimerId = setInterval(() => {
+            totalSeconds--;
+            const countdownEl = document.getElementById('activeCountdown');
+            if (totalSeconds <= 0) {
+                clearInterval(restTimerId);
+                restTimerId = null;
+                if (timerDiv.parentElement) {
+                    timerDiv.classList.add('rest-timer-display--done');
+                    timerDiv.innerHTML = '<span class="rest-timer-done-text">Rest complete!</span>';
+                    setTimeout(() => timerDiv.remove(), 1200);
+                }
+                refreshActiveStates();
+            } else {
+                if (countdownEl) countdownEl.textContent = formatTime(totalSeconds);
+            }
+        }, 1000);
+    }
+
+    function cancelRestTimer() {
+        if (restTimerId && restTimerId !== 'pending') clearInterval(restTimerId);
+        restTimerId = null;
+        const timerEl = document.querySelector('.rest-timer-display');
+        if (timerEl) timerEl.remove();
+        refreshActiveStates();
+    }
+
+    function formatTime(secs) {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function closeSession() {
+        if (restTimerId && restTimerId !== 'pending') clearInterval(restTimerId);
+        restTimerId = null;
+        activeSetIndex = -1;
+        allSets = [];
+        currentSessionWorkout = null;
+        sessionSetData = [];
+        document.getElementById('sessionModal').style.display = 'none';
+    }
+
+    function completeSession() {
+        if (restTimerId && restTimerId !== 'pending') clearInterval(restTimerId);
+        restTimerId = null;
+
+        // Capture any remaining active set that wasn't recorded
+        // (only save what was explicitly recorded via sessionSetData)
+
+        // Save session to history
+        if (currentSessionWorkout && sessionSetData.length > 0) {
+            const history = loadHistory();
+            history.push({
+                id: generateId(),
+                workoutId: currentSessionWorkout.id,
+                workoutName: currentSessionWorkout.name,
+                day: currentSessionWorkout.day,
+                date: new Date().toISOString(),
+                sets: sessionSetData
+            });
+            saveHistory(history);
+        }
+
+        activeSetIndex = -1;
+        allSets = [];
+        currentSessionWorkout = null;
+        sessionSetData = [];
+        document.getElementById('sessionModal').style.display = 'none';
+    }
+
+    // ── Exercise History ─────────────────────────────
+    function formatSessionDate(isoString) {
+        const d = new Date(isoString);
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const day = days[d.getDay()];
+        const month = d.getMonth() + 1;
+        const date = d.getDate();
+        const year = String(d.getFullYear()).slice(2);
+        let hours = d.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        return `${day}, ${month}/${date}/${year}, ${hours}:${mins}${ampm}`;
+    }
+
+    function toggleHistory(subcard, exerciseName) {
+        // If already showing, remove it
+        const existing = subcard.querySelector('.exercise-history-panel');
+        if (existing) { existing.remove(); return; }
+
+        const history = loadHistory();
+
+        // Gather all sets for this exercise across all sessions, newest first
+        const entries = [];
+        history.slice().reverse().forEach(session => {
+            const matchingSets = session.sets.filter(s => s.exercise === exerciseName);
+            if (matchingSets.length > 0) {
+                entries.push({ date: session.date, sets: matchingSets });
+            }
+        });
+
+        const panel = document.createElement('div');
+        panel.className = 'exercise-history-panel';
+        panel.dataset.testid = 'exercise-history-panel';
+
+        if (entries.length === 0) {
+            panel.innerHTML = '<p class="history-empty">No history yet</p>';
+        } else {
+            let html = '';
+            entries.forEach(entry => {
+                html += `<div class="history-session">`;
+                html += `<span class="history-date">${formatSessionDate(entry.date)}</span>`;
+                html += `<div class="history-sets">`;
+                entry.sets.forEach(s => {
+                    html += `<span class="history-set">Set ${s.set}: ${s.reps} reps &times; ${s.weight} lbs</span>`;
+                });
+                html += `</div></div>`;
+            });
+            panel.innerHTML = html;
+        }
+
+        // Insert after the header row
+        const headerRow = subcard.querySelector('.session-exercise-header');
+        headerRow.insertAdjacentElement('afterend', panel);
+    }
+
+    // ── Dev Controls ────────────────────────────────
+    function loadTestData() {
+        const testWorkouts = [
+            { id: generateId(), name: 'Stretching', day: 0, exercises: [] },
+            { id: generateId(), name: 'Upper Body', day: 1, exercises: ['Inclined Dumbbell Press', 'Machine Row'] },
+            { id: generateId(), name: 'Leg Day', day: 3, exercises: [] },
+        ];
+        saveWorkouts(testWorkouts);
+        renderWorkouts();
+    }
+
+    function resetAll() {
+        localStorage.removeItem(WORKOUTS_KEY);
+        localStorage.removeItem(HISTORY_KEY);
+        renderWorkouts();
+    }
+
+    // ── Keyboard ────────────────────────────────────
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (document.getElementById('restModal').style.display !== 'none') {
+                document.getElementById('restModal').style.display = 'none';
+                return;
+            }
+            if (document.getElementById('sessionModal').style.display !== 'none') {
+                closeSession();
+                return;
+            }
+            closeModal();
+        }
+    });
+
+    // ── Test Mode ────────────────────────────────────
+    // Set window.testMode = true in browser console to show dev controls
+    Object.defineProperty(window, 'testMode', {
+        set(val) {
+            document.getElementById('devControls').style.display = val ? 'flex' : 'none';
+        },
+        get() {
+            return document.getElementById('devControls').style.display !== 'none';
+        }
+    });
+
+    // ── Init ────────────────────────────────────────
+    renderWorkouts();
+</script>
+}

@@ -1,31 +1,828 @@
+/* ── Pink Pastel Theme ────────────────────────────── */
+:root {
+  --pink-50:  #fef1f6;
+  --pink-100: #fce4ef;
+  --pink-200: #f9c8df;
+  --pink-300: #f4a0c6;
+  --pink-400: #ec6fa3;
+  --pink-500: #e24683;
+  --pink-600: #d12462;
+  --pink-700: #b5164a;
+  --rose-gold: #b76e79;
+  --lavender:  #e6d5f5;
+  --mint:      #d5f5e3;
+  --cream:     #fdf6ee;
+}
+
 html {
   font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
   position: relative;
   min-height: 100%;
 }
 
-body {
-  margin-bottom: 60px;
+@media (min-width: 768px) {
+  html { font-size: 16px; }
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+body {
+  background: linear-gradient(160deg, var(--pink-50) 0%, var(--cream) 50%, var(--lavender) 100%);
+  background-attachment: fixed;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #4a3347;
+  margin-bottom: 60px;
+  min-height: 100vh;
+}
+
+/* ── Motivational Header ─────────────────────────── */
+.motivational-message {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--pink-500);
+  margin-bottom: 0.25rem;
+}
+
+.motivational-sub {
+  font-size: 1rem;
+  color: var(--rose-gold);
+  margin-bottom: 2rem;
+}
+
+/* ── Workout Cards Grid ──────────────────────────── */
+.workout-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.workout-card {
+  background: white;
+  border: 2px solid var(--pink-100);
+  border-radius: 16px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(226, 70, 131, 0.08);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.workout-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(226, 70, 131, 0.15);
+}
+
+/* ── Add Workout Card ────────────────────────────── */
+.workout-card--add {
+  border: 2px dashed var(--pink-300);
+  background: var(--pink-50);
+  cursor: pointer;
+  color: var(--pink-400);
+}
+
+.workout-card--add:hover {
+  border-color: var(--pink-500);
+  color: var(--pink-500);
+  background: var(--pink-100);
+}
+
+.add-icon {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.add-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* ── Workout Card Details ─────────────────────────── */
+.workout-card__day {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pink-400);
+  background: var(--pink-50);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+}
+
+.workout-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a3347;
+  margin-bottom: 0.25rem;
+}
+
+.workout-card__count {
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+}
+
+.workout-card__count--empty {
+  font-style: italic;
+  color: var(--pink-300);
+}
+
+/* ── Modal ───────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 51, 71, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(226, 70, 131, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--pink-500);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--pink-300);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.modal-close:hover {
+  color: var(--pink-500);
+}
+
+/* ── Form Elements ───────────────────────────────── */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 2px solid var(--pink-100);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #4a3347;
+  background: var(--pink-50);
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--pink-400);
+  background: white;
+}
+
+.form-input::placeholder {
+  color: var(--pink-300);
+}
+
+/* ── Exercise Rows ───────────────────────────────── */
+.exercise-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.exercise-input {
+  flex: 1;
+}
+
+.btn-remove-exercise {
+  background: none;
+  border: none;
+  color: var(--pink-300);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-remove-exercise:hover {
+  color: var(--pink-600);
+}
+
+.btn-add-exercise {
+  background: none;
+  border: 2px dashed var(--pink-200);
+  border-radius: 10px;
+  padding: 0.4rem 0.85rem;
+  color: var(--pink-400);
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s ease;
+}
+
+.btn-add-exercise:hover {
+  border-color: var(--pink-400);
+  color: var(--pink-500);
+  background: var(--pink-50);
+}
+
+/* ── Modal Action Buttons ────────────────────────── */
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn-cancel {
+  padding: 0.55rem 1.25rem;
+  border: 2px solid var(--pink-200);
+  border-radius: 10px;
+  background: white;
+  color: var(--rose-gold);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-cancel:hover {
+  border-color: var(--pink-300);
+  background: var(--pink-50);
+}
+
+.btn-save {
+  padding: 0.55rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+  box-shadow: 0 4px 12px rgba(226, 70, 131, 0.3);
+}
+
+.btn-delete {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  border: 2px solid #f5c6cb;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #c0392b;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-delete:hover {
+  background: #fde8e8;
+  border-color: #e0a0a8;
+}
+
+/* ── Start Session Button (on workout card) ──────── */
+.btn-start-session {
+  margin-top: 0.75rem;
+  padding: 0.4rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-start-session:hover {
+  background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+  box-shadow: 0 4px 12px rgba(226, 70, 131, 0.3);
+}
+
+/* ── Session Modal ───────────────────────────────── */
+.session-card {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(226, 70, 131, 0.25);
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--pink-600);
+  margin: 0;
+}
+
+.session-day-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pink-400);
+  background: var(--pink-50);
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+
+/* ── Exercise Subcards ───────────────────────────── */
+.session-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-exercise-card {
+  background: var(--pink-50);
+  border: 2px solid var(--pink-100);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.session-exercise-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.session-exercise-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a3347;
+  margin: 0;
+}
+
+/* ── History Button & Panel ──────────────────────── */
+.btn-history {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--pink-200);
+  border-radius: 6px;
+  background: white;
+  color: var(--rose-gold);
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.btn-history:hover {
+  border-color: var(--pink-400);
+  color: var(--pink-500);
+  background: var(--pink-50);
+}
+
+.exercise-history-panel {
+  background: white;
+  border: 1px solid var(--pink-100);
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.history-empty {
+  font-size: 0.8rem;
+  color: var(--pink-300);
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+}
+
+.history-session {
+  padding: 0.4rem 0;
+}
+
+.history-session + .history-session {
+  border-top: 1px solid var(--pink-100);
+}
+
+.history-date {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  margin-bottom: 0.2rem;
+}
+
+.history-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.history-set {
+  font-size: 0.75rem;
+  color: #4a3347;
+  padding-left: 0.5rem;
+}
+
+/* ── Set Rows ────────────────────────────────────── */
+.session-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  transition: background 0.15s ease;
+  gap: 0.5rem;
+}
+
+.session-set + .session-set {
+  border-top: 1px solid var(--pink-100);
+}
+
+/* Active set (pastel blue) */
+.session-set--active {
+  background: #e8f4fd;
+  border: 2px solid #b3d9f2;
+  border-radius: 10px;
+}
+
+.session-set--active + .session-set {
+  border-top: none;
+}
+
+.session-set + .session-set--active {
+  border-top: none;
+}
+
+/* Done set */
+.session-set--done {
+  opacity: 0.55;
+}
+
+.session-set__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  min-width: 3rem;
+  flex-shrink: 0;
+}
+
+/* ── Record Button ───────────────────────────────── */
+.btn-record {
+  padding: 0.35rem 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6db3f2, #4a9de8);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-record:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a9de8, #2d7dd2);
+  box-shadow: 0 3px 10px rgba(74, 157, 232, 0.3);
+}
+
+.btn-record--disabled {
+  background: #d0d0d0;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-record--done {
+  background: #b8e6b8;
+  color: #2e7d32;
+  cursor: default;
+}
+
+.session-set__inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.session-input {
+  width: 4rem;
+  padding: 0.4rem 0.5rem;
+  border: 2px solid var(--pink-200);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4a3347;
+  background: white;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.session-input::-webkit-outer-spin-button,
+.session-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.session-input:focus {
+  outline: none;
+  border-color: var(--pink-400);
+}
+
+.session-input-unit {
+  font-size: 0.75rem;
+  color: var(--rose-gold);
+  min-width: 2rem;
+}
+
+.session-set__separator {
+  color: var(--pink-300);
+  font-size: 0.85rem;
+}
+
+/* ── Session Action Buttons ──────────────────────── */
+.session-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn-complete {
+  padding: 0.6rem 1.75rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7ec882, #4caf50);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-complete:hover {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* ── Rest Timer Display (inline between sets) ────── */
+.rest-timer-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  margin: 0.25rem 0;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 2px solid #ffe082;
+  border-radius: 10px;
+  animation: timerPulse 2s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.rest-timer-display--done {
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  animation: none;
+}
+
+.rest-timer-icon {
+  font-size: 1rem;
+}
+
+.rest-timer-countdown {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e65100;
+  font-variant-numeric: tabular-nums;
+}
+
+.rest-timer-done-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.btn-rest-cancel {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid #ffe082;
+  border-radius: 6px;
+  background: white;
+  color: #e65100;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-rest-cancel:hover {
+  background: #fff3cd;
+  border-color: #ffb300;
+}
+
+/* ── Rest Timer Mini-Modal ───────────────────────── */
+.rest-card {
+  background: white;
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(74, 51, 71, 0.25);
+  min-width: 260px;
+}
+
+.rest-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pink-500);
+  margin: 0 0 1.25rem 0;
+}
+
+.rest-timer-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.rest-picker-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rest-arrow {
+  background: none;
+  border: 2px solid var(--pink-200);
+  border-radius: 8px;
+  width: 2.5rem;
+  height: 2rem;
+  cursor: pointer;
+  color: var(--pink-400);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+}
+
+.rest-arrow:hover {
+  border-color: var(--pink-400);
+  background: var(--pink-50);
+}
+
+.rest-picker-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #4a3347;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding: 0.15rem 0;
+}
+
+.rest-picker-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--rose-gold);
+  text-transform: uppercase;
+}
+
+.rest-picker-colon {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #4a3347;
+  margin: 0 0.15rem;
+  align-self: center;
+  margin-bottom: 1.2rem;
+}
+
+.btn-rest-start {
+  padding: 0.55rem 2rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6db3f2, #4a9de8);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-rest-start:hover {
+  background: linear-gradient(135deg, #4a9de8, #2d7dd2);
+  box-shadow: 0 4px 12px rgba(74, 157, 232, 0.3);
+}
+
+/* ── Dev/Test Controls ────────────────────────────── */
+.dev-controls {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 900;
+}
+
+.btn-dev {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--pink-200);
+  border-radius: 8px;
+  background: white;
+  color: var(--rose-gold);
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.btn-dev:hover {
+  opacity: 1;
+}
+
+.btn-dev--danger {
+  border-color: #f5c6cb;
+  color: #c0392b;
+}
+
+/* ── Focus States ────────────────────────────────── */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--pink-300);
+}
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
