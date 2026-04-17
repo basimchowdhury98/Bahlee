@@ -46,6 +46,15 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" for="plannedTime">Planned Time</label>
+                <input class="form-input" type="time" id="plannedTime"
+                       data-testid="planned-time-input" />
+                <p class="form-error" id="plannedTimeError" data-testid="planned-time-error" style="display:none;">
+                    Planned time is required
+                </p>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Exercises</label>
                 <div id="exerciseList" data-testid="exercise-list"></div>
                 <button class="btn-add-exercise" type="button" data-testid="add-exercise-btn" onclick="addExerciseRow()">
@@ -129,6 +138,17 @@
     const NUM_SETS = 3;
     const DEFAULT_REPS = 8;
     const DEFAULT_WEIGHT = 5;
+    const GOOGLE_CALENDAR_BASE_URL = 'https://calendar.google.com/calendar/render';
+    const GOOGLE_CALENDAR_REMINDER_MINUTES = 15;
+    const GOOGLE_DAY_CODES = {
+        1: 'MO',
+        2: 'TU',
+        3: 'WE',
+        4: 'TH',
+        5: 'FR',
+        6: 'SA',
+        7: 'SU'
+    };
 
     // ── Workout Data (localStorage) ─────────────────
     function loadWorkouts() {
@@ -139,6 +159,11 @@
 
     function saveWorkouts(workouts) {
         localStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
+    }
+
+    function clearCalendarFeedback(workout) {
+        if (!workout) return;
+        delete workout.googleCalendarError;
     }
 
     function loadHistory() {
@@ -158,6 +183,81 @@
     function sortedWorkouts(workouts) {
         const dayOrder = [0,1,2,3,4,5,6,7]; // Any=0, Mon=1 ... Sun=7
         return [...workouts].sort((a, b) => a.day - b.day || a.name.localeCompare(b.name));
+    }
+
+    function formatPlannedTime(timeValue) {
+        if (!timeValue) return '';
+
+        const [hourText, minuteText] = timeValue.split(':');
+        const hours = parseInt(hourText, 10);
+        const minutes = parseInt(minuteText, 10);
+
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return '';
+
+        const suffix = hours >= 12 ? 'PM' : 'AM';
+        const displayHour = hours % 12 || 12;
+        return `${displayHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+    }
+
+    function buildGoogleCalendarUrl(workout) {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        const nextStart = getNextOccurrenceDate(workout.day, workout.plannedTime);
+        const nextEnd = new Date(nextStart.getTime() + 60 * 60 * 1000);
+        const recurrence = `RRULE:FREQ=WEEKLY;BYDAY=${GOOGLE_DAY_CODES[workout.day]}`;
+
+        const params = new URLSearchParams({
+            action: 'TEMPLATE',
+            text: workout.name,
+            details: 'Workout reminder',
+            dates: `${formatGoogleDate(nextStart)}/${formatGoogleDate(nextEnd)}`,
+            recur: recurrence,
+            ctz: timezone,
+            trp: 'true'
+        });
+
+        return `${GOOGLE_CALENDAR_BASE_URL}?${params.toString().replace(/\+/g, '%20')}`;
+    }
+
+    function getNextOccurrenceDate(day, plannedTime) {
+        const [hourText, minuteText] = (plannedTime || '00:00').split(':');
+        const now = new Date();
+        const result = new Date(now);
+        const targetDay = day === 7 ? 0 : day;
+        const currentDay = now.getDay();
+        let offset = targetDay - currentDay;
+
+        if (offset < 0) offset += 7;
+
+        result.setDate(now.getDate() + offset);
+        result.setHours(parseInt(hourText, 10) || 0, parseInt(minuteText, 10) || 0, 0, 0);
+
+        if (result <= now) {
+            result.setDate(result.getDate() + 7);
+        }
+
+        return result;
+    }
+
+    function formatGoogleDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+    }
+
+    function canAddGoogleCalendar(workout) {
+        return !!workout.plannedTime && workout.day > 0 && !workout.googleCalendarLinked;
+    }
+
+    function getGoogleCalendarStatus(workout) {
+        if (workout.googleCalendarError) return '';
+        if (workout.googleCalendarLinked) return 'Google Calendar opened';
+        if (!workout.plannedTime) return 'Set a planned time to add a calendar reminder';
+        if (workout.day === 0) return 'Choose a workout day to add a calendar reminder';
+        return '';
     }
 
     // ── Render Workout Cards ────────────────────────
@@ -180,6 +280,20 @@
             const countText = exCount > 0
                 ? `<span class="workout-card__count">${exCount} exercise${exCount === 1 ? '' : 's'}</span>`
                 : '<span class="workout-card__count workout-card__count--empty">No exercises yet</span>';
+            const plannedTimeText = w.plannedTime
+                ? `<span class="workout-card__time">${esc(formatPlannedTime(w.plannedTime))}</span>`
+                : '';
+            const calendarStatus = getGoogleCalendarStatus(w);
+            const calendarError = w.googleCalendarError
+                ? `<span class="workout-card__calendar-error" data-testid="google-calendar-error">${esc(w.googleCalendarError)}</span>`
+                : '';
+            const calendarStatusHtml = calendarStatus
+                ? `<span class="workout-card__calendar-status" data-testid="google-calendar-status">${esc(calendarStatus)}</span>`
+                : '';
+            const googleCalendarBtn = canAddGoogleCalendar(w)
+                ? `<button class="btn-google-calendar" data-testid="add-google-calendar-btn"
+                           onclick="event.stopPropagation(); addToGoogleCalendar('${w.id}')">Add to Google Calendar</button>`
+                : '';
 
             const sessionBtn = exCount > 0
                 ? `<button class="btn-start-session" data-testid="start-session-btn"
@@ -189,7 +303,11 @@
             card.innerHTML = `
                 <span class="workout-card__day">${DAY_LABELS[w.day] || ''}</span>
                 <span class="workout-card__name">${esc(w.name)}</span>
+                ${plannedTimeText}
                 ${countText}
+                ${calendarStatusHtml}
+                ${calendarError}
+                ${googleCalendarBtn}
                 ${sessionBtn}
             `;
             container.appendChild(card);
@@ -221,6 +339,8 @@
         document.getElementById('workoutId').value = '';
         document.getElementById('workoutName').value = '';
         document.getElementById('workoutDay').value = '0';
+        document.getElementById('plannedTime').value = '';
+        hidePlannedTimeError();
         document.getElementById('exerciseList').innerHTML = '';
         document.getElementById('deleteBtn').style.display = 'none';
         document.getElementById('workoutModal').style.display = 'flex';
@@ -237,6 +357,8 @@
         document.getElementById('workoutId').value = id;
         document.getElementById('workoutName').value = w.name;
         document.getElementById('workoutDay').value = String(w.day);
+        document.getElementById('plannedTime').value = w.plannedTime || '';
+        hidePlannedTimeError();
 
         const list = document.getElementById('exerciseList');
         list.innerHTML = '';
@@ -249,7 +371,16 @@
 
     function closeModal() {
         document.getElementById('workoutModal').style.display = 'none';
+        hidePlannedTimeError();
         editingId = null;
+    }
+
+    function showPlannedTimeError() {
+        document.getElementById('plannedTimeError').style.display = 'block';
+    }
+
+    function hidePlannedTimeError() {
+        document.getElementById('plannedTimeError').style.display = 'none';
     }
 
     function addExerciseRow(value) {
@@ -292,6 +423,14 @@
         if (!name) { document.getElementById('workoutName').focus(); return; }
 
         const day = parseInt(document.getElementById('workoutDay').value);
+        const plannedTime = document.getElementById('plannedTime').value;
+        if (!plannedTime) {
+            showPlannedTimeError();
+            document.getElementById('plannedTime').focus();
+            return;
+        }
+
+        hidePlannedTimeError();
         const selects = document.querySelectorAll('#exerciseList select');
         const exercises = Array.from(selects).map(s => s.value.trim()).filter(v => v);
 
@@ -300,16 +439,43 @@
         if (editingId) {
             const idx = workouts.findIndex(w => w.id === editingId);
             if (idx !== -1) {
+                const currentWorkout = workouts[idx];
+                const scheduleChanged = currentWorkout.name !== name || currentWorkout.day !== day || currentWorkout.plannedTime !== plannedTime;
                 workouts[idx].name = name;
                 workouts[idx].day = day;
+                workouts[idx].plannedTime = plannedTime;
                 workouts[idx].exercises = exercises;
+                if (scheduleChanged) {
+                    workouts[idx].googleCalendarLinked = false;
+                }
+                clearCalendarFeedback(workouts[idx]);
             }
         } else {
-            workouts.push({ id: generateId(), name, day, exercises });
+            workouts.push({ id: generateId(), name, day, plannedTime, exercises, googleCalendarLinked: false });
         }
 
         saveWorkouts(workouts);
         closeModal();
+        renderWorkouts();
+    }
+
+    function addToGoogleCalendar(workoutId) {
+        const workouts = loadWorkouts();
+        const workout = workouts.find(x => x.id === workoutId);
+        if (!workout || !canAddGoogleCalendar(workout)) return;
+
+        clearCalendarFeedback(workout);
+
+        const calendarWindow = window.open(buildGoogleCalendarUrl(workout), '_blank', 'noopener,noreferrer');
+        if (calendarWindow === null) {
+            workout.googleCalendarError = 'Google Calendar could not be opened';
+            saveWorkouts(workouts);
+            renderWorkouts();
+            return;
+        }
+
+        workout.googleCalendarLinked = true;
+        saveWorkouts(workouts);
         renderWorkouts();
     }
 
@@ -669,6 +835,8 @@
             return document.getElementById('devControls').style.display !== 'none';
         }
     });
+
+    document.getElementById('plannedTime').addEventListener('input', hidePlannedTimeError);
 
     // ── Init ────────────────────────────────────────
     renderWorkouts();

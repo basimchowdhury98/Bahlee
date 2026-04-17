@@ -137,6 +137,28 @@ body {
   color: var(--pink-300);
 }
 
+.workout-card__time {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pink-600);
+  margin-bottom: 0.35rem;
+}
+
+.workout-card__calendar-status,
+.workout-card__calendar-error {
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 0.5rem;
+}
+
+.workout-card__calendar-status {
+  color: var(--rose-gold);
+}
+
+.workout-card__calendar-error {
+  color: #c0392b;
+}
+
 /* ── Modal ───────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
@@ -224,6 +246,12 @@ body {
 
 .form-input::placeholder {
   color: var(--pink-300);
+}
+
+.form-error {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  color: #c0392b;
 }
 
 /* ── Exercise Rows ───────────────────────────────── */
@@ -329,6 +357,24 @@ body {
 .btn-delete:hover {
   background: #fde8e8;
   border-color: #e0a0a8;
+}
+
+.btn-google-calendar {
+  margin-top: 0.75rem;
+  padding: 0.4rem 1rem;
+  border: 2px solid var(--pink-200);
+  border-radius: 10px;
+  background: white;
+  color: var(--pink-500);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-google-calendar:hover {
+  border-color: var(--pink-400);
+  background: var(--pink-50);
 }
 
 /* ── Start Session Button (on workout card) ──────── */

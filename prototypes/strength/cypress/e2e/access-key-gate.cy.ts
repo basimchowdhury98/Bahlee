@@ -5,17 +5,31 @@
  */
 
 const ACCESS_KEY = "mahlee-strong";
+const MOTIVATIONAL_BANNERS = [
+  "You can do it, Mahlee!",
+  "Leo wants you to do one more!",
+  "You are stronger than you think, Mahlee.",
+  "One set at a time, pretty girl.",
+  "Leo believes in you, always.",
+  "Strong looks very good on you.",
+  "You make hard work look cute.",
+  "Your future self is already proud of you.",
+  "You have got this, babe.",
+  "Stronger every day, hotter every set.",
+  "One more set and then extra kisses.",
+];
 
 describe("Access Key Gate", () => {
   // GIVEN Mahlee knows the access key
   // WHEN she navigates to /{valid-access-key}
-  // THEN she sees the message "You can do it, Mahlee!"
+  // THEN she sees one of the configured motivational messages
   it("shows the motivational message when the correct access key is used", () => {
     cy.visit(`/${ACCESS_KEY}`);
-    cy.get('[data-testid="motivational-message"]').should(
-      "contain.text",
-      "You can do it, Mahlee!"
-    );
+    cy.get('[data-testid="motivational-message"]')
+      .invoke("text")
+      .then((text) => {
+        expect(MOTIVATIONAL_BANNERS).to.include(text.trim());
+      });
   });
 
   // GIVEN a visitor does not know the access key
